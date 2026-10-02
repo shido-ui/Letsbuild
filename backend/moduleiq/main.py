@@ -23,6 +23,8 @@ from moduleiq.core.config import settings
 production = settings.environment.lower() == "production"
 app = FastAPI(title="ModuleIQ API", version="0.1.0", docs_url=None if production else "/api/docs", redoc_url=None if production else "/api/redoc")
 
+if production:
+    app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,

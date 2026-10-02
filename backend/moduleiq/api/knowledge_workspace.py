@@ -13,6 +13,7 @@ router = APIRouter(prefix="/knowledge-bases", tags=["knowledge-bases"])
 @router.get("/{knowledge_base_id}")
 def get_workspace(knowledge_base_id: str, db: Session = Depends(get_db)):
     try:
+        require_local_kb(db, knowledge_base_id)
         return overview(db, knowledge_base_id)
     except ValueError as exc:
         raise HTTPException(404, str(exc)) from exc
@@ -21,6 +22,7 @@ def get_workspace(knowledge_base_id: str, db: Session = Depends(get_db)):
 @router.get("/{knowledge_base_id}/hierarchy")
 def get_hierarchy(knowledge_base_id: str, db: Session = Depends(get_db)):
     try:
+        require_local_kb(db, knowledge_base_id)
         return hierarchy(db, knowledge_base_id)
     except ValueError as exc:
         raise HTTPException(404, str(exc)) from exc
@@ -29,6 +31,7 @@ def get_hierarchy(knowledge_base_id: str, db: Session = Depends(get_db)):
 @router.get("/{knowledge_base_id}/relationships")
 def get_relationships(knowledge_base_id: str, db: Session = Depends(get_db)):
     try:
+        require_local_kb(db, knowledge_base_id)
         return {"knowledge_base_id": knowledge_base_id, "cross_document_topics": related_topics(db, knowledge_base_id)}
     except ValueError as exc:
         raise HTTPException(404, str(exc)) from exc

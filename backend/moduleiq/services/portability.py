@@ -15,6 +15,7 @@ from moduleiq.infrastructure.database.models import (
     SkillState, SourceSolution, Subtopic, Table, Topic, TopicMastery, User, Workspace,
 )
 from moduleiq.infrastructure.database.base import utc_now
+from moduleiq.core.security import local_user
 
 FORMAT = "moduleiq-portable-bundle"
 VERSION = 1
@@ -141,9 +142,9 @@ def import_bundle(db: Session, bundle: dict[str, Any], *, name: str | None = Non
     if not kb_rows or not exported_kb or not any(r.get("id") == exported_kb for r in kb_rows):
         raise ValueError("Bundle does not contain a valid knowledge base")
 
-    existing_user = db.scalars(select(User).order_by(User.created_at)).first()
-    if not existing_user:
-        existing_user = User(id=str(uuid4()), email=f"imported-{uuid4().hex[:12]}@local")
+    existing_user = local_user(db)
+    if existing_user is None:
+        existing_user = User(id=str(uuid4()), email="local@moduleiq", display_name="Local user")
         db.add(existing_user)
         db.flush()
 
@@ -162,9 +163,11 @@ def import_bundle(db: Session, bundle: dict[str, Any], *, name: str | None = Non
     profile_rows = data.get("learner_profile", [])
     if profile_rows:
         raw = profile_rows[0]
-        profile = LearnerProfile(id=str(uuid4()), user_id=existing_user.id, metadata_json=raw.get("metadata_json") or {})
-        db.add(profile)
-        db.flush()
+        profile = db.scalar(select(LearnerProfile).where(LearnerProfile.user_id == existing_user.id))
+        if profile is None:
+            profile = LearnerProfile(id=str(uuid4()), user_id=existing_user.id, metadata_json=raw.get("metadata_json") or {})
+            db.add(profile)
+            db.flush()
         id_map[raw.get("id")] = profile.id
 
     skipped = {"ai_provider", "credential", "processing_job", "processing_stage"}
@@ -187,18 +190,6 @@ def import_bundle(db: Session, bundle: dict[str, Any], *, name: str | None = Non
             db.add(obj)
             id_map[old_id] = values["id"]
         db.flush()
-
-    # Restore learner profile against the current user; learning state can then be reattached.
-    profile_rows = data.get("learner_profile", [])
-    if profile_rows:
-        raw = profile_rows[0]
-        profile = LearnerProfile(id=str(uuid4()), user_id=existing_user.id, metadata_json=raw.get("metadata_json") or {})
-        db.add(profile)
-        db.flush()
-        id_map[raw.get("id")] = profile.id
-        for key in ("practice_session","topic_mastery","skill_state"):
-            # Rows were inserted before the profile existed; portability import intentionally omits these dependent records.
-            pass
 
     db.commit()
     return {"knowledge_base_id": kb.id, "workspace_id": workspace.id, "imported": True, "format": FORMAT, "version": VERSION}

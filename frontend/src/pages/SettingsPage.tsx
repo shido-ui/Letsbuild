@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { apiClient } from "../app/api/client";
+import { apiClient, getApiBase, setApiBase } from "../app/api/client";
 import { AppChrome } from "../app/layout/AppChrome";
 import { activateProvider, createProvider, deleteProvider, disconnectProvider, listProviders, testProvider, updateProvider } from "../app/api/providers";
 import type { Provider, ProviderType } from "../app/types/api";
@@ -47,6 +47,8 @@ export function SettingsPage() {
   const [editing, setEditing] = useState<string | null>(null);
   const [showKey, setShowKey] = useState(false);
   const [testState, setTestState] = useState<Record<string, "testing" | "ok" | "error">>({});
+  const [backendBase, setBackendBase] = useState(getApiBase());
+  const [backendStatus, setBackendStatus] = useState("");
   const form = useForm<FormValues>({ defaultValues: defaults });
 
   const providerType = form.watch("provider_type");
@@ -153,6 +155,19 @@ export function SettingsPage() {
     }
   }
 
+  async function testBackend() {
+    setBackendStatus("Checking backend…");
+    try {
+      const base = setApiBase(backendBase);
+      const root = base.endsWith("/api") ? base.slice(0, -4) : base;
+      const response = await fetch(root + "/api");
+      if (!response.ok) throw new Error("Backend returned an error.");
+      setBackendStatus("Backend reachable.");
+    } catch (error) {
+      setBackendStatus(error instanceof Error ? error.message : "Backend unavailable.");
+    }
+  }
+
   function startReplace(provider: Provider) {
     setEditing(provider.id);
     form.reset({
@@ -176,6 +191,24 @@ export function SettingsPage() {
         </div>
 
         <div className="settings">
+          <section className="card">
+            <span className="tag purple">RUNTIME</span>
+            <h2>Backend connection</h2>
+            <p>Choose the FastAPI server used by this web app or APK. AI keys stay on the backend.</p>
+            <div className="settings-form">
+              <label>
+                API base URL
+                <input value={backendBase} onChange={(event) => setBackendBase(event.target.value)} placeholder="http://127.0.0.1:8000/api" />
+              </label>
+              <div>
+                <button className="btn" type="button" onClick={() => void testBackend()}>Test connection</button>
+                <button className="btn primary" type="button" onClick={() => { setApiBase(backendBase); setBackendStatus("Backend URL saved."); }}>Save URL</button>
+              </div>
+              {backendStatus && <small>{backendStatus}</small>}
+              <p>For a hosted deployment, use the HTTPS <code>/api</code> endpoint. For the local Android/Termux backend, use <code>http://127.0.0.1:8000/api</code>.</p>
+            </div>
+          </section>
+          
           <section className="card">
             <span className="tag purple">AI ENGINE</span>
             <h2>{editing ? "Replace API key" : "Connect an AI provider"}</h2>

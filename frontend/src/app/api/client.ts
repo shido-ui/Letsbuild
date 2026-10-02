@@ -1,9 +1,23 @@
 import axios from "axios";
 
-const baseURL = import.meta.env.VITE_API_BASE_URL || "/api";
+export function defaultApiBase() {
+  const native = Boolean((window as any).Capacitor?.isNativePlatform?.());
+  return import.meta.env.VITE_API_BASE_URL || (native ? "http://127.0.0.1:8000/api" : "/api");
+}
+
+export function getApiBase() {
+  return localStorage.getItem("moduleiq_api_base") || defaultApiBase();
+}
+
+export function setApiBase(value: string) {
+  const normalized = value.trim().replace(/\/+$/, "");
+  localStorage.setItem("moduleiq_api_base", normalized);
+  apiClient.defaults.baseURL = normalized;
+  return normalized;
+}
 
 export const apiClient = axios.create({
-  baseURL,
+  baseURL: getApiBase(),
   timeout: 30_000,
   headers: { Accept: "application/json" },
 });
