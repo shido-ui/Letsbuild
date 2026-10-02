@@ -19,7 +19,7 @@ def _section(db, version, title):
 def infer_knowledge(db: Session, version_id: str, orchestrator: AIOrchestrator) -> KnowledgeOutput:
     version = db.get(DocumentVersion, version_id)
     if version is None: raise ValueError("Document version not found")
-    result = orchestrator.extract(build_knowledge_context(db, version_id))
+    result = orchestrator.infer_knowledge(build_knowledge_context(db, version_id))
     output = result.output
     if not isinstance(output, KnowledgeOutput): raise TypeError("Knowledge schema mismatch")
     title = output.chapter or output.section or "General"
