@@ -1,9 +1,40 @@
 {
-  "name":"moduleiq-web",
-  "private":true,
-  "version":"0.1.0",
-  "type":"module",
-  "scripts":{"dev":"vite","build":"tsc -b && vite build","preview":"vite preview","android:sync":"npm run build && npx cap sync android"},
-  "dependencies":{"@capacitor/core":"^8.5.2","react":"^19.1.1","react-dom":"^19.1.1","katex":"^0.16.25"},
-  "devDependencies":{"@capacitor/cli":"^8.5.2","@capacitor/android":"^8.5.2","@types/react":"^19.1.13","@types/react-dom":"^19.1.9","@types/katex":"^0.16.7","@vitejs/plugin-react":"^5.0.2","vite":"^7.1.7","typescript":"^5.9.2"}
+  "name": "moduleiq-web",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "android:sync": "npm run build && npx cap sync android",
+    "typecheck": "tsc -b --pretty false",
+    "lint": "tsc -b --pretty false"
+  },
+  "dependencies": {
+    "@capacitor/core": "^8.5.2",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1",
+    "katex": "^0.16.25",
+    "@tanstack/react-query": "^5.90.2",
+    "axios": "^1.12.2",
+    "clsx": "^2.1.1",
+    "date-fns": "^4.1.0",
+    "react-dropzone": "^14.3.8",
+    "react-hook-form": "^7.64.0",
+    "react-router-dom": "^7.9.4",
+    "recharts": "^3.2.1",
+    "zod": "^4.1.12",
+    "zustand": "^5.0.8"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "^8.5.2",
+    "@capacitor/android": "^8.5.2",
+    "@types/react": "^19.1.13",
+    "@types/react-dom": "^19.1.9",
+    "@types/katex": "^0.16.7",
+    "@vitejs/plugin-react": "^5.0.2",
+    "vite": "^7.1.7",
+    "typescript": "^5.9.2"
+  }
 }
