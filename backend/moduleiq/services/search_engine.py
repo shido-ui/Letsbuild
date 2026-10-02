@@ -29,7 +29,7 @@ from moduleiq.infrastructure.database.models import (
     Topic,
 )
 
-TOKEN_RE = re.compile(r"[\\w'-]+", re.UNICODE)
+TOKEN_RE = re.compile(r"[\w'-]+", re.UNICODE)
 
 
 @dataclass(frozen=True)
