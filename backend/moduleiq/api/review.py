@@ -4,6 +4,7 @@ from fastapi import APIRouter,Depends,HTTPException
 from pydantic import BaseModel,Field
 from sqlalchemy.orm import Session
 from moduleiq.infrastructure.database.session import get_db
+from moduleiq.core.security import require_local_kb, require_local_review
 from moduleiq.services.review import create_review_item,list_review_items,update_review_item
 router=APIRouter(prefix="/review",tags=["review"])
 class CreateReviewRequest(BaseModel):
@@ -20,9 +21,9 @@ def get_items(knowledge_base_id:str,status:str|None="open",limit:int=100,db:Sess
     try:return {"items":list_review_items(db,knowledge_base_id,status,limit)}
     except ValueError as e:raise HTTPException(400,str(e))
 @router.post("/items")
-def create_item(p:CreateReviewRequest,db:Session=Depends(get_db)):return create_review_item(db,p.knowledge_base_id,p.entity_type,p.entity_id,p.reason,p.metadata)
+def create_item(p:CreateReviewRequest,db:Session=Depends(get_db)):\n    try:\n        require_local_kb(db,p.knowledge_base_id)\n        return create_review_item(db,p.knowledge_base_id,p.entity_type,p.entity_id,p.reason,p.metadata)\n    except ValueError as e: raise HTTPException(404,str(e))
 @router.patch("/items/{item_id}")
 def update_item(item_id:str,p:UpdateReviewRequest,db:Session=Depends(get_db)):
-    try:return update_review_item(db,item_id,p.status,p.reason)
+    try:\n        require_local_review(db,item_id)\n        return update_review_item(db,item_id,p.status,p.reason)
     except LookupError as e:raise HTTPException(404,str(e))
     except ValueError as e:raise HTTPException(400,str(e))
