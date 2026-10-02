@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from moduleiq.infrastructure.database.models import KnowledgeBase, ProcessingJob, ProcessingStage
+from moduleiq.core.security import require_local_kb
 from moduleiq.infrastructure.database.session import get_db
 from moduleiq.services.ingestion import IngestionError, create_ingestion_job, get_or_create_knowledge_base
 from moduleiq.workers.ingestion import process_document
@@ -24,7 +25,7 @@ class UploadResponse(BaseModel):
 
 @router.get("/knowledge-bases")
 def list_knowledge_bases(db: Session=Depends(get_db)):
-    return [{"id":kb.id,"workspace_id":kb.workspace_id,"name":kb.name,"description":kb.description} for kb in db.scalars(select(KnowledgeBase).order_by(KnowledgeBase.created_at)).all()]
+    return [{"id":kb.id,"workspace_id":kb.workspace_id,"name":kb.name,"description":kb.description} for kb in db.scalars(select(KnowledgeBase).join(KnowledgeBase.workspace).order_by(KnowledgeBase.created_at)).all()]
 
 @router.post("/knowledge-bases")
 def create_knowledge_base(name: str="My Knowledge",db: Session=Depends(get_db)):
