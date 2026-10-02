@@ -14,4 +14,9 @@ def upgrade() -> None:
 def downgrade() -> None:
     from moduleiq.infrastructure.database.base import Base
     from moduleiq.infrastructure.database import models_import  # noqa: F401
-    Base.metadata.drop_all(op.get_bind(), checkfirst=True)
+    bind = op.get_bind()
+    if bind.dialect.name == "sqlite":
+        bind.exec_driver_sql("PRAGMA foreign_keys=OFF")
+    Base.metadata.drop_all(bind, checkfirst=True)
+    if bind.dialect.name == "sqlite":
+        bind.exec_driver_sql("PRAGMA foreign_keys=ON")
