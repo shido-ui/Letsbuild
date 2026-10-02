@@ -37,7 +37,7 @@ def get_solutions(question_id: str, db: Session = Depends(get_db)):
 @router.post("/generate/{question_id}")
 def generate_solution(question_id: str, provider_id: str, db: Session = Depends(get_db)):
     try:
-        return generate_ai_solution(db, question_id, AIOrchestrator(build_provider(db, provider_id)))
+        return generate_ai_solution(db, question_id, AIOrchestrator(build_provider(db, provider_id)), provider_id)
     except ValueError as exc:
         raise HTTPException(404, str(exc)) from exc
     except (AIProviderError, InvalidCredentialError) as exc:
