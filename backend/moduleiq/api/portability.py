@@ -23,6 +23,7 @@ class ImportRequest(BaseModel):
 @router.get("/export")
 def export_data(knowledge_base_id: str, db: Session = Depends(get_db)):
     try:
+        require_local_kb(db, knowledge_base_id)
         bundle = export_bundle(db, knowledge_base_id)
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc

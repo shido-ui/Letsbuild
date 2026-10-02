@@ -1,0 +1,32 @@
+name: ModuleIQ Phase 6 UIUX
+
+on:
+  push:
+    branches:
+      - transformation/phase-6-uiux
+  pull_request:
+    branches: [main]
+
+jobs:
+  ui:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install frontend
+        working-directory: frontend
+        run: npm install
+      - name: Typecheck
+        working-directory: frontend
+        run: npm run typecheck
+      - name: Build
+        working-directory: frontend
+        run: npm run build
+      - name: Verify shared chrome
+        working-directory: frontend
+        run: |
+          test -f src/app/layout/AppChrome.tsx
+          grep -q 'AppChrome' src/pages/SettingsPage.tsx
+          grep -q 'focus-visible' src/styles.css
