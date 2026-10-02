@@ -25,6 +25,10 @@ def test_adapter_preserves_native_outputs(tmp_path, monkeypatch):
         def markdown(self): return "# extracted"
         def structured_content(self): return {"pages": 2}
         def save(self, writer):
+            writer.write_string("middle_json.json", self.to_json())
+            writer.write_string("markdown.md", self.markdown())
+            import json
+            writer.write_string("structured_content.json", json.dumps(self.structured_content()))
             writer.write_string("assets/figure.txt", "asset")
 
     fake_parser = types.ModuleType("mineru.parser")
