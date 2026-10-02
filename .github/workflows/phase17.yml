@@ -13,5 +13,6 @@ jobs:
         with: {python-version: "3.12"}
       - run: pip install -e ".[dev]"
       - run: python -m compileall backend
+      - run: mkdir -p data
       - run: alembic -c alembic.ini upgrade head
       - run: pytest -q
