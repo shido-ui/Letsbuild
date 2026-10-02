@@ -72,6 +72,7 @@ def create_session(
     topic_id: str | None = None,
     difficulty: str | None = None,
     question_type: str | None = None,
+    learner_profile_id: str | None = None,
 ) -> dict[str, Any]:
     if mode not in MODES:
         raise ValueError("Invalid practice mode")
@@ -205,8 +206,7 @@ def attempt(
         else:
             is_correct = None
 
-    db.add(
-        PracticeAttempt(
+    new_attempt = PracticeAttempt(
             id=str(uuid4()),
             session_id=session_id,
             question_id=question_id,
@@ -217,6 +217,10 @@ def attempt(
             confidence=confidence,
         )
     )
+    db.add(new_attempt)
+    if session.learner_profile_id:
+        from moduleiq.services.adaptive import update_from_attempt
+        update_from_attempt(db, new_attempt)
 
     state = _state(session)
     current_index = ids.index(question_id)
