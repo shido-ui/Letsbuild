@@ -40,7 +40,13 @@ def seed(db: Session):
     o12 = QuestionOption(id="o12", question_id="q1", ordinal=2, option_text="5", is_correct=False)
     o21 = QuestionOption(id="o21", question_id="q2", ordinal=1, option_text="6", is_correct=True)
     o22 = QuestionOption(id="o22", question_id="q2", ordinal=2, option_text="7", is_correct=False)
-    db.add_all([user, workspace, kb, material, document, version, page, section, chapter, topic, q1, q2, o11, o12, o21, o22])
+    db.add_all([user, workspace, kb])
+    db.commit()
+    db.add_all([material, document, version, page, section, chapter, topic])
+    db.commit()
+    db.add_all([q1, q2])
+    db.commit()
+    db.add_all([o11, o12, o21, o22])
     db.commit()
 
 
