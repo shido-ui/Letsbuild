@@ -8,6 +8,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from moduleiq.infrastructure.database.session import get_db
+from moduleiq.core.security import local_user, require_local_kb
 from moduleiq.services.analytics import get_summary, list_events, log_event
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
