@@ -1,7 +1,7 @@
 import {useEffect,useRef,useState} from "react";
 import katex from "katex";
 import "katex/dist/katex.min.css";
-import "./styles.css";
+import "../styles.css";
 type R={p:string;n:string;i:string};
 const routes:R[]=[
 {p:"/dashboard",n:"Dashboard",i:"▦"},{p:"/upload",n:"Upload & Analyze",i:"↑"},{p:"/processing",n:"AI Processing",i:"✦"},
