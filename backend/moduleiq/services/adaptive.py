@@ -32,24 +32,6 @@ def get_or_create_profile(db: Session, user_id: str) -> LearnerProfile:
     return profile
 
 
-def _topic_for_question(db: Session, question: Question) -> Topic | None:
-    if not question.classification_id:
-        return None
-    from moduleiq.infrastructure.database.models import Classification
-    classification = db.get(Classification, question.classification_id)
-    if not classification or not classification.topic:
-        return None
-    return db.scalar(
-        select(Topic)
-        .join(Topic.chapter)
-        .where(Topic.name == classification.topic)
-        .join(Topic.chapter.property.mapper.class_.section)
-        .join(SectionKnowledgeBaseAlias := __import__(
-            "moduleiq.infrastructure.database.models", fromlist=["DocumentVersion"]
-        ).DocumentVersion, isouter=True)
-    ) if False else db.scalar(select(Topic).where(Topic.name == classification.topic))
-    
-
 def _topic_from_question(db: Session, question: Question) -> Topic | None:
     if not question.classification_id:
         return None
