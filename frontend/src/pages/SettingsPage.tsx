@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { apiClient } from "../app/api/client";
+import { AppChrome } from "../app/layout/AppChrome";
 import { activateProvider, createProvider, deleteProvider, disconnectProvider, listProviders, testProvider, updateProvider } from "../app/api/providers";
 import type { Provider, ProviderType } from "../app/types/api";
 
@@ -165,12 +166,8 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="page">
-      <header>
-        <div><small>Workspace /</small><b>Settings</b></div>
-        <div className="top"><b className="avatar">S</b></div>
-      </header>
-      <main>
+    <AppChrome title="Settings">
+
         <div className="title">
           <div>
             <h2>Settings</h2>
@@ -282,7 +279,6 @@ export function SettingsPage() {
             }}>Export knowledge backup</button>
           </section>
         </div>
-      </main>
-    </div>
+    </AppChrome>
   );
 }
