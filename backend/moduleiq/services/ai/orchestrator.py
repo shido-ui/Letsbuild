@@ -6,7 +6,7 @@ from typing import Any
 from pydantic import BaseModel, ValidationError
 from .errors import AIProviderError, ProviderTimeoutError
 from .provider import AIProvider
-from .schemas import AIExecutionResult, ClassificationOutput, ExtractionOutput, SolutionOutput, VerificationOutput, SummaryOutput, QuestionsOutput, KnowledgeOutput
+from .schemas import AIExecutionResult, ClassificationOutput, ExtractionOutput, SolutionOutput, VerificationOutput, DifficultyOutput, SummaryOutput, QuestionsOutput, KnowledgeOutput
 
 @dataclass(frozen=True)
 class ContextItem:
@@ -102,6 +102,6 @@ class AIOrchestrator:
     def extract(self, context): return self._run('extract', context, ExtractionOutput, self.provider.extract)
     def infer_knowledge(self, context): return self._run('infer_knowledge', context, KnowledgeOutput, self.provider.extract)
     def solve(self, context): return self._run('solve', context, SolutionOutput, self.provider.solve)
-    def verify(self, context): return self._run('verify', context, VerificationOutput, self.provider.verify)
+    def assess_difficulty(self, context): return self._run('assess_difficulty', context, DifficultyOutput, self.provider.extract)\n    def verify(self, context): return self._run('verify', context, VerificationOutput, self.provider.verify)
     def summarize(self, context): return self._run('summarize', context, SummaryOutput, self.provider.summarize)
     def generate_questions(self, context): return self._run('generate_questions', context, QuestionsOutput, self.provider.generate_questions)
