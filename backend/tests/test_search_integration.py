@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from moduleiq.infrastructure.database.models import (
     Block, Chapter, Concept, Document, DocumentVersion, Equation,
     KnowledgeBase, Material, Page, Provenance, Question, Section,
-    Subtopic, Topic, User, Workspace,
+    Subtopic, Table, Topic, Diagram, User, Workspace,
 )
 from moduleiq.services.search_engine import search
 from test_database import make_engine
