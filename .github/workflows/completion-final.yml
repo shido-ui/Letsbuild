@@ -16,6 +16,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
           python -m compileall -q backend
+          mkdir -p data
           alembic upgrade head
           pytest -q
       - uses: actions/setup-node@v4
