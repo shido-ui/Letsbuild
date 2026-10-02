@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     mineru_ocr_mode: str = "auto"
     mineru_image_analysis: bool = True
     allowed_media_types: list[str] = ["application/pdf"]
-    cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
+    cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost", "http://127.0.0.1"]
     log_level: str = "INFO"
     credential_encryption_key: str = Field("", validation_alias="MODULEIQ_CREDENTIAL_ENCRYPTION_KEY")
     allowed_hosts: list[str] = ["localhost", "127.0.0.1"]
