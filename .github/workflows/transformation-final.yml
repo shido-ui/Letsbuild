@@ -1,0 +1,85 @@
+name: ModuleIQ Transformation Final
+
+on:
+  push:
+    branches:
+      - transformation/phase-8-final-acceptance
+  pull_request:
+    branches: [main]
+
+jobs:
+  final:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install backend
+        run: pip install -e ".[dev]"
+
+      - name: Compile backend
+        run: python -m compileall -q backend/moduleiq backend/tests
+
+      - name: Migrate
+        run: mkdir -p data && alembic upgrade head
+
+      - name: Backend full regression
+        run: pytest -q
+
+      - name: Targeted security and AI checks
+        run: pytest -q backend/tests/test_security_isolation.py backend/tests/test_isolation_extra.py backend/tests/test_ai_provider_api.py backend/tests/test_ai_providers.py backend/tests/test_ai_provider_switching.py backend/tests/test_ingestion_recovery.py backend/tests/test_ingestion_limits.py
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Build web
+        working-directory: frontend
+        env:
+          VITE_API_BASE_URL: ""
+        run: |
+          npm install
+          npm run typecheck
+          npm run build
+
+      - name: Dependency audit
+        working-directory: frontend
+        run: npm audit --audit-level=high
+
+      - name: Verify PWA
+        run: |
+          test -s frontend/dist/manifest.webmanifest
+          test -s frontend/dist/sw.js
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Build Android
+        working-directory: frontend
+        env:
+          VITE_API_BASE_URL: http://127.0.0.1:8000/api
+          CAPACITOR_ALLOW_CLEARTEXT: "true"
+        run: |
+          npm run build
+          npx cap add android
+          npx cap sync android
+          cd android
+          ./gradlew assembleDebug --no-daemon
+
+      - name: Verify APK
+        run: |
+          test -s frontend/android/app/build/outputs/apk/debug/app-debug.apk
+          unzip -t frontend/android/app/build/outputs/apk/debug/app-debug.apk >/dev/null
+
+      - name: Secret hygiene
+        run: |
+          ! grep -R -E 'AIza[0-9A-Za-z_-]{20,}|sk-[A-Za-z0-9_-]{20,}' frontend/src backend/moduleiq --exclude-dir=__pycache__
+          ! grep -R 'OPENAI_API_KEY=' frontend/src backend/moduleiq
+          ! grep -R 'GEMINI_API_KEY=' frontend/src backend/moduleiq
