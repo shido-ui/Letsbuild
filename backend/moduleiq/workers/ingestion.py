@@ -27,7 +27,7 @@ def process_document(job_id: str)->str:
         if job is None: return job_id
         version=db.get(DocumentVersion,job.document_version_id)
         if version is None:
-            job.status="failed"; job.error_message="Document version not found."; db.commit(); return job_id
+            job.status="failed"; job.metadata_json={**(job.metadata_json or {}),"error":"Document version not found."}; db.commit(); return job_id
         job.status="processing"; job.attempts+=1; job.started_at=datetime.now(timezone.utc)
         version.processing_status="processing"
         _set_stage(db,job.id,1,"complete",1.0); _set_stage(db,job.id,2,"processing",0.0); db.commit()
@@ -43,7 +43,7 @@ def process_document(job_id: str)->str:
             _set_stage(db,job.id,4,"complete",1.0); _set_stage(db,job.id,5,"processing",0.0); _set_stage(db,job.id,5,"complete",1.0)
             version.processing_status="ready"; job.status="complete"; job.finished_at=datetime.now(timezone.utc); db.commit()
         except MinerUUnavailable as exc:
-            _set_stage(db,job.id,2,"failed",0.0,str(exc)); version.processing_status="engine_unavailable"; job.status="failed"; job.error_message=str(exc); job.finished_at=datetime.now(timezone.utc); db.commit(); raise
+            _set_stage(db,job.id,2,"failed",0.0,str(exc)); version.processing_status="engine_unavailable"; job.status="failed"; job.metadata_json={**(job.metadata_json or {}),"error":str(exc)}; job.finished_at=datetime.now(timezone.utc); db.commit(); raise
         except Exception as exc:
             _set_stage(db,job.id,2,"failed",0.0,str(exc)); version.processing_status="extraction_failed"; job.status="retrying"; job.error_message=str(exc); db.commit(); raise
     return job_id
