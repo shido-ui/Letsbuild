@@ -18,7 +18,7 @@ def test_failed_ingestion_job_can_be_recovered(tmp_path):
         material=Material(id=str(uuid4()),knowledge_base_id=kb.id,name="x.pdf",media_type="application/pdf"); db.add(material); db.flush()
         doc=Document(id=str(uuid4()),material_id=material.id,title="x"); db.add(doc); db.flush()
         version=DocumentVersion(id=str(uuid4()),document_id=doc.id,version_number=1,storage_uri="/tmp/x.pdf",processing_status="failed"); db.add(version); db.flush()
-        job=ProcessingJob(id=str(uuid4()),document_version_id=version.id,status="failed",attempts=3,error_message="boom"); db.add(job); db.flush()
+        job=ProcessingJob(id=str(uuid4()),document_version_id=version.id,status="failed",attempts=3,metadata_json={"error":"boom"}); db.add(job); db.flush()
         db.add(ProcessingStage(id=str(uuid4()),processing_job_id=job.id,stage_name="extraction",ordinal=3,status="failed",progress=0,error_message="boom"))
         db.commit()
         recovered=recover_ingestion_job(db,job.id)
