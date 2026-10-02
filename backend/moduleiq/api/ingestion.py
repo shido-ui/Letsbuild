@@ -55,4 +55,4 @@ def get_job(job_id: str,db: Session=Depends(get_db)):
     job=db.get(ProcessingJob,job_id)
     if job is None: raise HTTPException(status_code=404,detail="Processing job not found.")
     stages=db.scalars(select(ProcessingStage).where(ProcessingStage.processing_job_id==job.id).order_by(ProcessingStage.ordinal)).all()
-    return {"id":job.id,"document_version_id":job.document_version_id,"status":job.status,"attempts":job.attempts,"started_at":job.started_at,"finished_at":job.finished_at,"stages":[{"name":s.stage_name,"status":s.status,"progress":s.progress,"error":s.error_message} for s in stages]}
+    return {"id":job.id,"document_version_id":job.document_version_id,"status":job.status,"attempts":job.attempts,"started_at":job.started_at,"finished_at":job.finished_at,"error":(job.metadata_json or {}).get("error"),"stages":[{"name":s.stage_name,"status":s.status,"progress":s.progress,"error":s.error_message} for s in stages]}
