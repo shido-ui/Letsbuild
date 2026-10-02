@@ -36,7 +36,7 @@ def create_knowledge_base(name: str="My Knowledge",db: Session=Depends(get_db)):
 def upload_material(file: UploadFile=File(...),knowledge_base_id: str|None=None,on_duplicate: str="reject",db: Session=Depends(get_db)):
     try: result=create_ingestion_job(db,file,knowledge_base_id,on_duplicate)
     except IngestionError as exc: raise HTTPException(status_code=400,detail=str(exc)) from exc
-    except Exception as exc: raise HTTPException(status_code=500,detail=f"Upload failed: {exc}") from exc
+    except Exception as exc: raise HTTPException(status_code=500,detail="Upload failed safely.") from exc
     if not result.get("duplicate"): process_document(result["processing_job_id"])
     return result
 
