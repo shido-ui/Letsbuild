@@ -63,6 +63,8 @@ def test_search_finds_structured_objects_cross_document_and_preserves_source(tmp
             provenance_id="prov1",
         )
         e1 = Equation(id="e1", page_id=p1.id, latex="Phi_E = q/epsilon_0", source_text="Gauss law equation")
+        table1 = Table(id="tb1", page_id=p1.id, caption="Gauss law reference values", data_json=[["charge", "flux"], ["q", "q/epsilon_0"]])
+        diagram1 = Diagram(id="dg1", page_id=p1.id, caption="Cylindrical Gaussian surface")
 
         db.add_all([user, workspace, kb, m1, m2, d1, d2, v1, v2, p1, p2, b1])
         db.commit()
@@ -70,12 +72,28 @@ def test_search_finds_structured_objects_cross_document_and_preserves_source(tmp
         db.commit()
         db.add_all([prov1, q1])
         db.commit()
-        db.add(e1)
+        db.add_all([e1, table1, diagram1])
         db.commit()
 
         exact = search(db, "kb1", "Gauss law")
         assert exact["results"]
         assert any(r["kind"] in {"document", "topic", "question", "block"} for r in exact["results"])
+
+        question = search(db, "kb1", "Gaussian surface", kind="question")
+        assert question["results"]
+        assert question["results"][0]["id"] == "q1"
+
+        equation = search(db, "kb1", "epsilon_0", kind="equation")
+        assert equation["results"]
+        assert equation["results"][0]["id"] == "e1"
+
+        table = search(db, "kb1", "flux", kind="table")
+        assert table["results"]
+        assert table["results"][0]["id"] == "tb1"
+
+        diagram = search(db, "kb1", "cylindrical Gaussian surface", kind="diagram")
+        assert diagram["results"]
+        assert diagram["results"][0]["id"] == "dg1"
 
         topic = search(db, "kb1", "cylindrical symmetry", kind="concept")
         assert topic["results"]
