@@ -56,6 +56,7 @@ def _pdf_metadata(path: Path)->tuple[int,dict[str,object]]:
     try:
         reader=PdfReader(str(path),strict=False); pages=len(reader.pages)
         if pages<1: raise IngestionError("The PDF contains no pages.")
+        if pages > settings.max_pdf_pages: raise IngestionError("The PDF exceeds the configured page limit.")
         metadata={str(k):str(v) for k,v in (reader.metadata or {}).items() if v is not None}
         return pages,metadata
     except IngestionError: raise
@@ -93,7 +94,8 @@ def create_ingestion_job(db: Session,upload: UploadFile,knowledge_base_id: str|N
     kb=db.get(KnowledgeBase,knowledge_base_id) if knowledge_base_id else get_or_create_knowledge_base(db)
     if kb is None: raise IngestionError("Knowledge base not found.")
     filename=_safe_name(upload.filename); declared=(upload.content_type or "").lower()
-    if declared and declared not in {"application/pdf","application/octet-stream"}: raise IngestionError("Only PDF material is supported in Phase 4.")
+    allowed = set(settings.allowed_media_types) | {"application/octet-stream"}
+    if declared and declared not in allowed: raise IngestionError("Only configured material types are supported.")
     temporary=Path(settings.storage_root)/".incoming"/f"{uuid.uuid4()}.upload"
     try:
         sha,size=_copy_and_hash(upload.file,temporary,settings.max_upload_bytes)
