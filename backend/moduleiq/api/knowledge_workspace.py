@@ -4,6 +4,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from moduleiq.infrastructure.database.session import get_db
+from moduleiq.core.security import require_local_kb
 from moduleiq.services.knowledge_workspace import hierarchy, overview, related_topics, source_object
 
 router = APIRouter(prefix="/knowledge-bases", tags=["knowledge-bases"])
