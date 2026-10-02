@@ -17,11 +17,16 @@ jobs:
           node-version: "22"
       - name: Build web application
         working-directory: frontend
+        env:
+          VITE_API_BASE_URL: http://127.0.0.1:8000/api
+          CAPACITOR_ALLOW_CLEARTEXT: "true"
         run: |
           npm install
           npm run build
       - name: Generate Android project
         working-directory: frontend
+        env:
+          CAPACITOR_ALLOW_CLEARTEXT: "true"
         run: |
           npx cap add android
           npx cap sync android
