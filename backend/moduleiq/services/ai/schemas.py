@@ -71,3 +71,31 @@ class AIExecutionResult(BaseModel):
     cached: bool = False
     output: Any
     source_references: list[SourceReference] = []
+
+
+class KnowledgeConceptGroup(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    name: str
+    concepts: list[str] = []
+
+class KnowledgeTopic(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    name: str
+    subtopics: list[KnowledgeConceptGroup] = []
+
+class KnowledgePrerequisite(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    prerequisite: str
+    dependent: str
+    strength: float = Field(default=0.5, ge=0, le=1)
+
+class KnowledgeOutput(BaseModel):
+    model_config = ConfigDict(extra='forbid')
+    subject: str | None = None
+    section: str | None = None
+    chapter: str | None = None
+    confidence: float = Field(ge=0, le=1)
+    topics: list[KnowledgeTopic] = []
+    prerequisites: list[KnowledgePrerequisite] = []
+    related_concepts: list[tuple[str, str]] = []
+    source_references: list[dict] = []
