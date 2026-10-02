@@ -1,0 +1,24 @@
+name: ModuleIQ Phase 28 Verification
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  release-readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -e ".[dev]"
+      - run: python -m compileall backend
+      - run: mkdir -p data
+      - run: alembic -c alembic.ini upgrade head
+      - run: pytest -q
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - run: cd frontend && npm install && npm run build
+      - run: test -s CHANGELOG.md
+      - run: test -s RELEASE_NOTES_v0.1.0.md
+      - run: test -s .github/workflows/release.yml
