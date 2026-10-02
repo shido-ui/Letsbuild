@@ -159,6 +159,14 @@ def import_bundle(db: Session, bundle: dict[str, Any], *, name: str | None = Non
     db.flush()
     id_map[exported_kb] = kb.id
 
+    profile_rows = data.get("learner_profile", [])
+    if profile_rows:
+        raw = profile_rows[0]
+        profile = LearnerProfile(id=str(uuid4()), user_id=existing_user.id, metadata_json=raw.get("metadata_json") or {})
+        db.add(profile)
+        db.flush()
+        id_map[raw.get("id")] = profile.id
+
     skipped = {"ai_provider", "credential", "processing_job", "processing_stage"}
     for key in IMPORT_ORDER:
         if key in {"workspace","knowledge_base","learner_profile"} or key in skipped:
@@ -166,6 +174,8 @@ def import_bundle(db: Session, bundle: dict[str, Any], *, name: str | None = Non
         model = TABLES[key]
         for raw in data.get(key, []):
             values = {c.name: _parse_time(raw.get(c.name)) for c in model.__table__.columns if c.name in raw}
+            if key == "document":
+                values["current_version_id"] = None
             old_id = values.get("id")
             if not old_id:
                 continue
