@@ -22,15 +22,4 @@ jobs:
           mkdir -p data
           alembic upgrade head
       - name: Tests
-        run: |
-          set +e
-          pytest -q > pytest.log 2>&1
-          status=$?
-          cat pytest.log
-          exit $status
-      - name: Upload test log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: phase14-test-log
-          path: pytest.log
+        run: pytest -q
