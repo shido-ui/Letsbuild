@@ -1,13 +1,13 @@
 from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from moduleiq.infrastructure.database.models import AIProvider, Credential
+from moduleiq.infrastructure.database.models import AIProvider, Credential, User
 from .crypto import CredentialCipher
 from .errors import InvalidCredentialError
 from .providers import GeminiProvider, LocalModelProvider, OpenAICompatibleProvider
 
 def build_provider(db: Session, provider_id: str):
-    row=db.scalar(select(AIProvider).where(AIProvider.id==provider_id,AIProvider.enabled.is_(True)))
+    row=db.scalar(select(AIProvider).join(User, AIProvider.user_id==User.id).where(AIProvider.id==provider_id,AIProvider.enabled.is_(True),User.email=="local@moduleiq"))
     if row is None: raise InvalidCredentialError("Provider is unavailable")
     cred=db.scalar(select(Credential).where(Credential.ai_provider_id==provider_id))
     if cred is None or not cred.secret_ciphertext: raise InvalidCredentialError("Provider credential is not configured")
