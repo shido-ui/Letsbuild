@@ -102,7 +102,12 @@ def _find_source_solution(db: Session, question: Question) -> SourceSolution | N
 
 
 def _similarity(a: str, b: str) -> float:
-    return SequenceMatcher(None, a.lower().strip(), b.lower().strip()).ratio()
+    left, right = a.lower().strip(), b.lower().strip()
+    if not left or not right:
+        return 0.0
+    if left in right or right in left:
+        return 1.0
+    return SequenceMatcher(None, left, right).ratio()
 
 
 def generate_ai_solution(db: Session, question_id: str, orchestrator: AIOrchestrator, provider_id: str | None = None) -> dict:
