@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from moduleiq.api.health import router as health_router
+from moduleiq.api.ingestion import router as ingestion_router
 from moduleiq.core.config import settings
 
 app = FastAPI(title="ModuleIQ API", version="0.1.0", docs_url="/api/docs", redoc_url="/api/redoc")
