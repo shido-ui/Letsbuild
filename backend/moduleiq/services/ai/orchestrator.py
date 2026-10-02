@@ -102,6 +102,7 @@ class AIOrchestrator:
     def extract(self, context): return self._run('extract', context, ExtractionOutput, self.provider.extract)
     def infer_knowledge(self, context): return self._run('infer_knowledge', context, KnowledgeOutput, self.provider.extract)
     def solve(self, context): return self._run('solve', context, SolutionOutput, self.provider.solve)
-    def assess_difficulty(self, context): return self._run('assess_difficulty', context, DifficultyOutput, self.provider.extract)\n    def verify(self, context): return self._run('verify', context, VerificationOutput, self.provider.verify)
+    def assess_difficulty(self, context): return self._run('assess_difficulty', context, DifficultyOutput, self.provider.extract)
+    def verify(self, context): return self._run('verify', context, VerificationOutput, self.provider.verify)
     def summarize(self, context): return self._run('summarize', context, SummaryOutput, self.provider.summarize)
     def generate_questions(self, context): return self._run('generate_questions', context, QuestionsOutput, self.provider.generate_questions)
