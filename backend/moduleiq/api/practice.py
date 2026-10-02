@@ -5,6 +5,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from moduleiq.infrastructure.database.session import get_db
+from moduleiq.core.security import require_local_kb, require_local_session
 from moduleiq.services.practice import (
     attempt,
     create_session,
