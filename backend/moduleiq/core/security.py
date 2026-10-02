@@ -1,7 +1,7 @@
 from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from moduleiq.infrastructure.database.models import AIProvider, DocumentVersion, KnowledgeBase, LearnerProfile, PracticeSession, ProcessingJob, Question, ReviewItem, User, Workspace
+from moduleiq.infrastructure.database.models import AIProvider, Document, DocumentVersion, KnowledgeBase, LearnerProfile, Material, PracticeSession, ProcessingJob, Question, ReviewItem, User, Workspace
 LOCAL_EMAIL = "local@moduleiq"
 
 def local_user(db: Session) -> User | None:
@@ -50,11 +50,11 @@ def require_local_question(db: Session, question_id: str) -> Question:
 def require_local_version(db: Session, version_id: str) -> DocumentVersion:
     version = db.scalar(
         select(DocumentVersion)
-        .join(__import__("moduleiq.infrastructure.database.models", fromlist=["Document"]).Document,
-              DocumentVersion.document_id == __import__("moduleiq.infrastructure.database.models", fromlist=["Document"]).Document.id)
-        .join(__import__("moduleiq.infrastructure.database.models", fromlist=["Material"]).Material,
-              __import__("moduleiq.infrastructure.database.models", fromlist=["Document"]).Document.material_id == __import__("moduleiq.infrastructure.database.models", fromlist=["Material"]).Material.id)
-        .join(KnowledgeBase, __import__("moduleiq.infrastructure.database.models", fromlist=["Material"]).Material.knowledge_base_id == KnowledgeBase.id)
+        .join(Document,
+              DocumentVersion.document_id == Document.id)
+        .join(Material,
+              Document.material_id == Material.id)
+        .join(KnowledgeBase, Material.knowledge_base_id == KnowledgeBase.id)
         .join(Workspace, KnowledgeBase.workspace_id == Workspace.id)
         .join(User, Workspace.owner_id == User.id)
         .where(DocumentVersion.id == version_id, User.email == LOCAL_EMAIL)
@@ -68,11 +68,11 @@ def require_local_job(db: Session, job_id: str) -> ProcessingJob:
     job = db.scalar(
         select(ProcessingJob)
         .join(DocumentVersion, ProcessingJob.document_version_id == DocumentVersion.id)
-        .join(__import__("moduleiq.infrastructure.database.models", fromlist=["Document"]).Document,
-              DocumentVersion.document_id == __import__("moduleiq.infrastructure.database.models", fromlist=["Document"]).Document.id)
-        .join(__import__("moduleiq.infrastructure.database.models", fromlist=["Material"]).Material,
-              __import__("moduleiq.infrastructure.database.models", fromlist=["Document"]).Document.material_id == __import__("moduleiq.infrastructure.database.models", fromlist=["Material"]).Material.id)
-        .join(KnowledgeBase, __import__("moduleiq.infrastructure.database.models", fromlist=["Material"]).Material.knowledge_base_id == KnowledgeBase.id)
+        .join(Document,
+              DocumentVersion.document_id == Document.id)
+        .join(Material,
+              Document.material_id == Material.id)
+        .join(KnowledgeBase, Material.knowledge_base_id == KnowledgeBase.id)
         .join(Workspace, KnowledgeBase.workspace_id == Workspace.id)
         .join(User, Workspace.owner_id == User.id)
         .where(ProcessingJob.id == job_id, User.email == LOCAL_EMAIL)
