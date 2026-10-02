@@ -51,7 +51,7 @@ class DocumentVersion(IdMixin, TimestampMixin, JSONMixin, Base):
     version_number: Mapped[int]=mapped_column(Integer, nullable=False)
     storage_uri: Mapped[str|None]=mapped_column(String(2000))
     processing_status: Mapped[str]=mapped_column(String(40), default="pending", nullable=False, index=True)
-    document: Mapped[Document]=relationship(back_populates="versions")
+    document: Mapped[Document]=relationship(back_populates="versions", foreign_keys=[document_id])
     pages: Mapped[list["Page"]]=relationship(back_populates="document_version", cascade="all, delete-orphan")
     __table_args__=(UniqueConstraint("document_id","version_number"),)
 
