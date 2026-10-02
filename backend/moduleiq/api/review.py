@@ -21,9 +21,15 @@ def get_items(knowledge_base_id:str,status:str|None="open",limit:int=100,db:Sess
     try:return {"items":list_review_items(db,knowledge_base_id,status,limit)}
     except ValueError as e:raise HTTPException(400,str(e))
 @router.post("/items")
-def create_item(p:CreateReviewRequest,db:Session=Depends(get_db)):\n    try:\n        require_local_kb(db,p.knowledge_base_id)\n        return create_review_item(db,p.knowledge_base_id,p.entity_type,p.entity_id,p.reason,p.metadata)\n    except ValueError as e: raise HTTPException(404,str(e))
+def create_item(p:CreateReviewRequest,db:Session=Depends(get_db)):
+    try:
+        require_local_kb(db,p.knowledge_base_id)
+        return create_review_item(db,p.knowledge_base_id,p.entity_type,p.entity_id,p.reason,p.metadata)
+    except ValueError as e: raise HTTPException(404,str(e))
 @router.patch("/items/{item_id}")
 def update_item(item_id:str,p:UpdateReviewRequest,db:Session=Depends(get_db)):
-    try:\n        require_local_review(db,item_id)\n        return update_review_item(db,item_id,p.status,p.reason)
+    try:
+        require_local_review(db,item_id)
+        return update_review_item(db,item_id,p.status,p.reason)
     except LookupError as e:raise HTTPException(404,str(e))
     except ValueError as e:raise HTTPException(400,str(e))
