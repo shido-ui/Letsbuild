@@ -25,6 +25,7 @@ class CreatePracticeRequest(BaseModel):
     topic_id: str | None = None
     difficulty: str | None = None
     question_type: str | None = None
+    learner_profile_id: str | None = None
 
 
 class AttemptRequest(BaseModel):
@@ -51,6 +52,7 @@ def create(request: CreatePracticeRequest, db: Session = Depends(get_db)):
             topic_id=request.topic_id,
             difficulty=request.difficulty,
             question_type=request.question_type,
+            learner_profile_id=request.learner_profile_id,
         )
     except ValueError as exc:
         raise _error(exc) from exc
