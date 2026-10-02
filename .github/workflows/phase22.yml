@@ -1,0 +1,18 @@
+name: ModuleIQ Phase 22 Verification
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  pwa:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - run: cd frontend && npm install
+      - run: cd frontend && npm run build
+      - run: test -f frontend/dist/manifest.webmanifest
+      - run: test -f frontend/dist/sw.js
+      - run: grep -q 'moduleiq-192.svg' frontend/dist/manifest.webmanifest
