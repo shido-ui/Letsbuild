@@ -13,6 +13,7 @@ from moduleiq.api.search import router as search_router
 from moduleiq.api.practice import router as practice_router
 from moduleiq.api.adaptive import router as adaptive_router
 from moduleiq.api.review import router as review_router
+from moduleiq.api.analytics import router as analytics_router
 from moduleiq.core.config import settings
 
 app = FastAPI(title="ModuleIQ API", version="0.1.0", docs_url="/api/docs", redoc_url="/api/redoc")
@@ -36,6 +37,7 @@ app.include_router(search_router, prefix="/api")
 app.include_router(practice_router, prefix="/api")
 app.include_router(adaptive_router, prefix="/api")
 app.include_router(review_router, prefix="/api")
+app.include_router(analytics_router, prefix="/api")
 
 @app.get("/api")
 async def api_root() -> dict[str, str]:
