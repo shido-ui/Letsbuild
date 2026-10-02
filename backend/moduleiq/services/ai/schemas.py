@@ -36,6 +36,17 @@ class SolutionOutput(BaseModel):
     confidence: float = Field(ge=0, le=1)
     source_references: list[SourceReference] = []
 
+class DifficultyOutput(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    overall: float = Field(ge=0, le=1)
+    reasoning_depth: float = Field(ge=0, le=1)
+    calculation_complexity: float = Field(ge=0, le=1)
+    conceptual_complexity: float = Field(ge=0, le=1)
+    prerequisite_depth: float = Field(ge=0, le=1)
+    confidence: float = Field(ge=0, le=1)
+    notes: str = ""
+    source_references: list[SourceReference] = []
+
 class VerificationOutput(BaseModel):
     model_config = ConfigDict(extra="forbid")
     status: Literal["verified", "uncertain", "failed"]
