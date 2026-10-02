@@ -64,7 +64,9 @@ def test_search_finds_structured_objects_cross_document_and_preserves_source(tmp
         )
         e1 = Equation(id="e1", page_id=p1.id, latex="Phi_E = q/epsilon_0", source_text="Gauss law equation")
 
-        db.add_all([user, workspace, kb, m1, m2, d1, d2, v1, v2, p1, p2, b1, section1, chapter1, topic1, sub1, concept1, prov1, q1, e1])
+        db.add_all([user, workspace, kb, m1, m2, d1, d2, v1, v2, p1, p2, b1, section1, chapter1, topic1, sub1, concept1, prov1, q1])
+        db.commit()
+        db.add(e1)
         db.commit()
 
         exact = search(db, "kb1", "Gauss law")
