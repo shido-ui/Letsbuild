@@ -13,6 +13,7 @@ from moduleiq.infrastructure.database.models import (
     PracticeSession,
     Question,
     QuestionOption,
+    LearnerProfile,
 )
 
 MODES = {"fast", "deep", "boss", "custom"}
@@ -118,6 +119,11 @@ def create_session(
         },
     )
     db.add(session)
+    if learner_profile_id:
+        profile = db.get(LearnerProfile, learner_profile_id)
+        if profile:
+            from moduleiq.services.analytics import log_event
+            log_event(db, "practice_session_started", user_id=profile.user_id, knowledge_base_id=knowledge_base_id, metadata={"session_id": session.id, "mode": mode, "question_count": len(ids)})
     db.commit()
     db.refresh(session)
     return get_session(db, session.id)
