@@ -9,6 +9,7 @@ from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
 from moduleiq.infrastructure.database.session import get_db
+from moduleiq.core.security import require_local_kb
 from moduleiq.services.portability import export_bundle, import_bundle, validate_bundle
 
 router = APIRouter(prefix="/portability", tags=["portability"])
