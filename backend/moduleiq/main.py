@@ -8,6 +8,7 @@ from moduleiq.api.knowledge import router as knowledge_router
 from moduleiq.api.questions import router as questions_router
 from moduleiq.api.verification import router as verification_router
 from moduleiq.api.solutions import router as solutions_router
+from moduleiq.api.knowledge_workspace import router as knowledge_workspace_router
 from moduleiq.core.config import settings
 
 app = FastAPI(title="ModuleIQ API", version="0.1.0", docs_url="/api/docs", redoc_url="/api/redoc")
@@ -26,6 +27,7 @@ app.include_router(knowledge_router, prefix="/api")
 app.include_router(questions_router, prefix="/api")
 app.include_router(verification_router, prefix="/api")
 app.include_router(solutions_router, prefix="/api")
+app.include_router(knowledge_workspace_router, prefix="/api")
 
 @app.get("/api")
 async def api_root() -> dict[str, str]:
