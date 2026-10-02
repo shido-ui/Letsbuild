@@ -71,7 +71,7 @@ def recover_ingestion_job(db: Session, job_id: str) -> ProcessingJob:
     if job.status not in {"failed", "retrying"}:
         raise IngestionError("Only failed or retrying jobs can be recovered.")
     job.status = "queued"
-    job.error_message = None
+    job.metadata_json = {k:v for k,v in (job.metadata_json or {}).items() if k != "error"}
     job.attempts = 0
     job.started_at = None
     job.finished_at = None
