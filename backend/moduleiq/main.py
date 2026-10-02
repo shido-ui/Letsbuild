@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 
 from moduleiq.api.health import router as health_router
 from moduleiq.api.ingestion import router as ingestion_router
