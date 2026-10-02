@@ -7,6 +7,7 @@ from pypdf import PdfReader
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from moduleiq.core.config import get_settings
+from moduleiq.core.security import require_local_kb, require_local_job
 from moduleiq.infrastructure.database.models import Document, DocumentVersion, KnowledgeBase, Material, ProcessingJob, ProcessingStage, User, Workspace
 settings=get_settings()
 STAGES=("validation","document_analysis","extraction","normalization","finalization")
@@ -63,7 +64,10 @@ def _pdf_metadata(path: Path)->tuple[int,dict[str,object]]:
     except Exception as exc: raise IngestionError(f"The PDF could not be parsed: {exc}") from exc
 
 def recover_ingestion_job(db: Session, job_id: str) -> ProcessingJob:
-    job = db.get(ProcessingJob, job_id)
+    try:
+        job = require_local_job(db, job_id)
+    except ValueError as exc:
+        raise IngestionError(str(exc)) from exc
     if job is None:
         raise IngestionError("Processing job not found.")
     version = db.get(DocumentVersion, job.document_version_id)
@@ -91,7 +95,7 @@ def recover_ingestion_job(db: Session, job_id: str) -> ProcessingJob:
 
 def create_ingestion_job(db: Session,upload: UploadFile,knowledge_base_id: str|None=None,on_duplicate: str="reject")->dict:
     if on_duplicate not in {"reject","reuse"}: raise IngestionError("on_duplicate must be 'reject' or 'reuse'.")
-    kb=db.get(KnowledgeBase,knowledge_base_id) if knowledge_base_id else get_or_create_knowledge_base(db)
+    kb=require_local_kb(db, knowledge_base_id) if knowledge_base_id else get_or_create_knowledge_base(db)
     if kb is None: raise IngestionError("Knowledge base not found.")
     filename=_safe_name(upload.filename); declared=(upload.content_type or "").lower()
     allowed = set(settings.allowed_media_types) | {"application/octet-stream"}
