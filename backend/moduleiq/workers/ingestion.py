@@ -7,6 +7,7 @@ from moduleiq.core.config import get_settings
 from moduleiq.infrastructure.database.models import DocumentVersion, ProcessingJob, ProcessingStage
 from moduleiq.infrastructure.database.session import SessionLocal
 from moduleiq.infrastructure.document_engine.mineru_adapter import MinerUUnavailable, extract_with_mineru
+from moduleiq.services.normalization import normalize_middle_json
 
 settings=get_settings()
 huey=SqliteHuey(filename=str(Path(settings.data_dir)/"huey.db"),immediate=False)
@@ -36,7 +37,11 @@ def process_document(job_id: str)->str:
             job.metadata_json={**(job.metadata_json or {}),"engine":result.engine,"engine_version":result.engine_version,"extraction_dir":str(result.output_dir),"page_count":result.page_count,"middle_json":str(result.middle_json_path),"markdown":str(result.markdown_path),"structured_content":str(result.structured_content_path)}
             version.metadata_json={**(version.metadata_json or {}),"extraction_engine":result.engine,"extraction_engine_version":result.engine_version,"extraction_dir":str(result.output_dir)}
             _set_stage(db,job.id,2,"complete",1.0); _set_stage(db,job.id,3,"complete",1.0)
-            version.processing_status="extracted"; job.status="ready_for_normalization"; job.finished_at=datetime.now(timezone.utc); db.commit()
+            _set_stage(db,job.id,4,"processing",0.0); db.commit()
+            counts=normalize_middle_json(db,version,result.middle_json_path,result.output_dir)
+            job.metadata_json={**(job.metadata_json or {}),"normalized_counts":counts}
+            _set_stage(db,job.id,4,"complete",1.0); _set_stage(db,job.id,5,"processing",0.0); _set_stage(db,job.id,5,"complete",1.0)
+            version.processing_status="ready"; job.status="complete"; job.finished_at=datetime.now(timezone.utc); db.commit()
         except MinerUUnavailable as exc:
             _set_stage(db,job.id,2,"failed",0.0,str(exc)); version.processing_status="engine_unavailable"; job.status="failed"; job.error_message=str(exc); job.finished_at=datetime.now(timezone.utc); db.commit(); raise
         except Exception as exc:
