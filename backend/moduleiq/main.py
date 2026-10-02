@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from uuid import uuid4
 
 from moduleiq.api.health import router as health_router
 from moduleiq.api.ingestion import router as ingestion_router
@@ -18,7 +20,8 @@ from moduleiq.api.analytics import router as analytics_router
 from moduleiq.api.portability import router as portability_router
 from moduleiq.core.config import settings
 
-app = FastAPI(title="ModuleIQ API", version="0.1.0", docs_url="/api/docs", redoc_url="/api/redoc")
+production = settings.environment.lower() == "production"
+app = FastAPI(title="ModuleIQ API", version="0.1.0", docs_url=None if production else "/api/docs", redoc_url=None if production else "/api/redoc")
 
 app.add_middleware(
     CORSMiddleware,
