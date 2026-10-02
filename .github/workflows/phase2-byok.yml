@@ -1,0 +1,51 @@
+name: ModuleIQ Phase 2 BYOK Frontend
+
+on:
+  push:
+    branches:
+      - transformation/phase-2-byok-frontend
+  pull_request:
+    branches: [main]
+
+jobs:
+  phase2:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install backend
+        working-directory: backend
+        run: pip install -e ".[dev]"
+      - name: Compile backend
+        working-directory: backend
+        run: python -m compileall -q moduleiq tests
+      - name: Prepare database
+        working-directory: backend
+        run: mkdir -p data && alembic upgrade head
+      - name: Backend regression
+        working-directory: backend
+        run: pytest -q
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Install frontend
+        working-directory: frontend
+        run: npm install
+      - name: Typecheck
+        working-directory: frontend
+        run: npm run typecheck
+      - name: Production build
+        working-directory: frontend
+        run: npm run build
+      - name: Verify BYOK architecture
+        working-directory: frontend
+        run: |
+          test -f src/pages/SettingsPage.tsx
+          test -f src/app/api/providers.ts
+          grep -q 'SettingsPage' src/app/router/routes.tsx
+          grep -q 'react-hook-form' package.json
+          grep -q 'zod' package.json
+          ! grep -R 'AIza' src
+          ! grep -R 'sk-' src
