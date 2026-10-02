@@ -6,18 +6,39 @@ from sqlalchemy import select
 from moduleiq.core.config import get_settings
 from moduleiq.infrastructure.database.models import DocumentVersion, ProcessingJob, ProcessingStage
 from moduleiq.infrastructure.database.session import SessionLocal
+from moduleiq.infrastructure.document_engine.mineru_adapter import MinerUUnavailable, extract_with_mineru
+
 settings=get_settings()
 huey=SqliteHuey(filename=str(Path(settings.data_dir)/"huey.db"),immediate=False)
 
+def _set_stage(db,job_id: str,ordinal: int,status: str,progress: float,error: str|None=None)->None:
+    stage=db.scalar(select(ProcessingStage).where(ProcessingStage.processing_job_id==job_id,ProcessingStage.ordinal==ordinal))
+    if stage:
+        now=datetime.now(timezone.utc)
+        if status=="processing" and stage.started_at is None: stage.started_at=now
+        if status in {"complete","failed"}: stage.finished_at=now
+        stage.status=status; stage.progress=progress; stage.error_message=error
+
 @huey.task(retries=2,retry_delay=5)
-def prepare_document(job_id: str)->str:
+def process_document(job_id: str)->str:
     with SessionLocal() as db:
         job=db.get(ProcessingJob,job_id)
         if job is None: return job_id
-        now=datetime.now(timezone.utc); job.status="processing"; job.attempts+=1; job.started_at=now
-        stage=db.scalar(select(ProcessingStage).where(ProcessingStage.processing_job_id==job.id,ProcessingStage.ordinal==1))
-        if stage: stage.status="complete"; stage.progress=1.0; stage.started_at=now; stage.finished_at=now
         version=db.get(DocumentVersion,job.document_version_id)
-        if version: version.processing_status="ready_for_extraction"
-        job.status="ready_for_extraction"; job.finished_at=datetime.now(timezone.utc); db.commit()
+        if version is None:
+            job.status="failed"; job.error_message="Document version not found."; db.commit(); return job_id
+        job.status="processing"; job.attempts+=1; job.started_at=datetime.now(timezone.utc)
+        version.processing_status="processing"
+        _set_stage(db,job.id,1,"complete",1.0); _set_stage(db,job.id,2,"processing",0.0); db.commit()
+        try:
+            output_dir=Path(settings.storage_root)/"extractions"/version.id
+            result=extract_with_mineru(Path(version.storage_uri),output_dir,tier=settings.mineru_tier,ocr_mode=settings.mineru_ocr_mode,image_analysis=settings.mineru_image_analysis)
+            job.metadata_json={**(job.metadata_json or {}),"engine":result.engine,"engine_version":result.engine_version,"extraction_dir":str(result.output_dir),"page_count":result.page_count,"middle_json":str(result.middle_json_path),"markdown":str(result.markdown_path),"structured_content":str(result.structured_content_path)}
+            version.metadata_json={**(version.metadata_json or {}),"extraction_engine":result.engine,"extraction_engine_version":result.engine_version,"extraction_dir":str(result.output_dir)}
+            _set_stage(db,job.id,2,"complete",1.0); _set_stage(db,job.id,3,"complete",1.0)
+            version.processing_status="extracted"; job.status="ready_for_normalization"; job.finished_at=datetime.now(timezone.utc); db.commit()
+        except MinerUUnavailable as exc:
+            _set_stage(db,job.id,2,"failed",0.0,str(exc)); version.processing_status="engine_unavailable"; job.status="failed"; job.error_message=str(exc); job.finished_at=datetime.now(timezone.utc); db.commit(); raise
+        except Exception as exc:
+            _set_stage(db,job.id,2,"failed",0.0,str(exc)); version.processing_status="extraction_failed"; job.status="retrying"; job.error_message=str(exc); db.commit(); raise
     return job_id
