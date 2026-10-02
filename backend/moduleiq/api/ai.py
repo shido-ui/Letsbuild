@@ -18,7 +18,7 @@ from moduleiq.services.ai.provider_switching import (
     disconnect_provider,
     list_user_providers,
 )
-from moduleiq.services.ai.providers import GeminiProvider, LocalModelProvider, OpenAICompatibleProvider
+from moduleiq.services.ai.providers import GeminiProvider, LocalModelProvider, OpenAICompatibleProvider, OpenAIProvider
 
 router = APIRouter(prefix="/ai", tags=["ai"])
 
@@ -62,7 +62,13 @@ def _owned_provider(db: Session, user_id: str, provider_id: str) -> AIProvider:
 def _provider(row: AIProvider, secret: str):
     if row.provider_type == "gemini":
         return GeminiProvider(secret, row.model_name or "gemini-2.5-flash")
-    if row.provider_type in {"openai", "openai_compatible"}:
+    if row.provider_type == "openai":
+        return OpenAIProvider(
+            secret,
+            row.model_name or "gpt-5",
+            row.base_url or "https://api.openai.com/v1",
+        )
+    if row.provider_type == "openai_compatible":
         return OpenAICompatibleProvider(
             secret,
             row.model_name or "gpt-5",
