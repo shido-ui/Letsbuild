@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from moduleiq.infrastructure.database.models import KnowledgeBase, ProcessingJob, ProcessingStage, DocumentVersion, Document, Material, Workspace, User
 from moduleiq.core.security import require_local_kb
 from moduleiq.infrastructure.database.session import get_db
-from moduleiq.services.ingestion import IngestionError, create_ingestion_job, get_or_create_knowledge_base
+from moduleiq.services.ingestion import IngestionError, create_ingestion_job, get_or_create_knowledge_base, recover_ingestion_job
 from moduleiq.workers.ingestion import process_document
 router=APIRouter(prefix="/ingestion",tags=["ingestion"])
 
@@ -37,8 +37,18 @@ def upload_material(file: UploadFile=File(...),knowledge_base_id: str|None=None,
     try: result=create_ingestion_job(db,file,knowledge_base_id,on_duplicate)
     except IngestionError as exc: raise HTTPException(status_code=400,detail=str(exc)) from exc
     except Exception as exc: raise HTTPException(status_code=500,detail=f"Upload failed: {exc}") from exc
-    if not result.get("duplicate"): prepare_document(result["processing_job_id"])
+    if not result.get("duplicate"): process_document(result["processing_job_id"])
     return result
+
+@router.post("/jobs/{job_id}/retry")
+def retry_job(job_id: str, db: Session=Depends(get_db)):
+    try:
+        job = recover_ingestion_job(db, job_id)
+        process_document(job.id)
+        return {"id": job.id, "status": "queued", "recovered": True}
+    except IngestionError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+
 
 @router.get("/jobs/{job_id}")
 def get_job(job_id: str,db: Session=Depends(get_db)):
