@@ -105,7 +105,7 @@ def _similarity(a: str, b: str) -> float:
     return SequenceMatcher(None, a.lower().strip(), b.lower().strip()).ratio()
 
 
-def generate_ai_solution(db: Session, question_id: str, orchestrator: AIOrchestrator) -> dict:
+def generate_ai_solution(db: Session, question_id: str, orchestrator: AIOrchestrator, provider_id: str | None = None) -> dict:
     question = db.get(Question, question_id)
     if question is None:
         raise ValueError("Question not found")
@@ -148,7 +148,7 @@ def generate_ai_solution(db: Session, question_id: str, orchestrator: AIOrchestr
     if ai_solution.ai_solution is None:
         db.add(AISolution(
             question_solution_id=ai_solution.id,
-            provider_id=None,
+            provider_id=provider_id,
             model_name=result.model,
         ))
     else:
