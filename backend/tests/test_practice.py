@@ -30,7 +30,7 @@ def seed(db: Session):
     material = Material(id="m1", knowledge_base=kb, name="Notes", media_type="application/pdf")
     document = Document(id="d1", material=material, title="Notes")
     version = DocumentVersion(id="v1", document=document, version_number=1)
-    page = Page(id="p1", document_version=v1, page_number=1)
+    page = Page(id="p1", document_version_id="v1", page_number=1)
     section = Section(id="s1", document_version_id="v1", title="Mechanics")
     chapter = Chapter(id="c1", section_id="s1", title="Kinematics", ordinal=1)
     topic = Topic(id="t1", chapter_id="c1", name="Motion")
