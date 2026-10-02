@@ -1,0 +1,38 @@
+name: ModuleIQ Phase 1 Frontend Architecture
+
+on:
+  push:
+    branches:
+      - transformation/phase-1-frontend-architecture
+  pull_request:
+    branches: [main]
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package.json
+      - name: Install
+        run: npm install
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Build
+        run: npm run build
+      - name: Verify architecture
+        run: |
+          test -f src/app/AppShell.tsx
+          test -f src/app/api/client.ts
+          test -f src/app/router/routes.tsx
+          test -f src/app/store/useAppStore.ts
+          test -f src/app/types/api.ts
+          test -f src/pages/LegacySurface.tsx
+          ! grep -q 'history.pushState' src/App.tsx
+          ! grep -q 'fetch(API' src/App.tsx
