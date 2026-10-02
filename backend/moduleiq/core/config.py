@@ -9,6 +9,9 @@ class Settings(BaseSettings):
     data_dir: str = "./data"
     storage_root: str = "./data/storage"
     max_upload_bytes: int = 250 * 1024 * 1024
+    mineru_tier: str = "standard"
+    mineru_ocr_mode: str = "auto"
+    mineru_image_analysis: bool = True
     allowed_media_types: list[str] = ["application/pdf"]
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173"]
     log_level: str = "INFO"
