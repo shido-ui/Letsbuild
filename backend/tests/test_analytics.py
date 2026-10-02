@@ -16,6 +16,7 @@ from moduleiq.infrastructure.database.models import (
     PracticeSession,
     Topic,
     TopicMastery,
+    Question,
     User,
     Workspace,
     Chapter,
