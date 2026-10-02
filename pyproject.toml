@@ -16,6 +16,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+document-engine = [
+  "mineru==4.0.10",
+]
 dev = [
   "pytest>=8.4,<9",
   "pytest-asyncio>=1.2,<2",
