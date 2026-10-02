@@ -4,7 +4,7 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from moduleiq.infrastructure.database.models import KnowledgeBase, ProcessingJob, ProcessingStage, DocumentVersion, Document, Material, Workspace, User
-from moduleiq.core.security import require_local_kb
+from moduleiq.core.security import require_local_kb, require_local_job
 from moduleiq.infrastructure.database.session import get_db
 from moduleiq.services.ingestion import IngestionError, create_ingestion_job, get_or_create_knowledge_base, recover_ingestion_job
 from moduleiq.workers.ingestion import process_document
@@ -34,7 +34,10 @@ def create_knowledge_base(name: str="My Knowledge",db: Session=Depends(get_db)):
 
 @router.post("/upload",response_model=UploadResponse,status_code=201)
 def upload_material(file: UploadFile=File(...),knowledge_base_id: str|None=None,on_duplicate: str="reject",db: Session=Depends(get_db)):
-    try: result=create_ingestion_job(db,file,knowledge_base_id,on_duplicate)
+    try:
+        if knowledge_base_id is not None:
+            require_local_kb(db, knowledge_base_id)
+        result=create_ingestion_job(db,file,knowledge_base_id,on_duplicate)
     except IngestionError as exc: raise HTTPException(status_code=400,detail=str(exc)) from exc
     except Exception as exc: raise HTTPException(status_code=500,detail="Upload failed safely.") from exc
     if not result.get("duplicate"): process_document(result["processing_job_id"])
@@ -43,6 +46,7 @@ def upload_material(file: UploadFile=File(...),knowledge_base_id: str|None=None,
 @router.post("/jobs/{job_id}/retry")
 def retry_job(job_id: str, db: Session=Depends(get_db)):
     try:
+        require_local_job(db, job_id)
         job = recover_ingestion_job(db, job_id)
         process_document(job.id)
         return {"id": job.id, "status": "queued", "recovered": True}
@@ -52,7 +56,10 @@ def retry_job(job_id: str, db: Session=Depends(get_db)):
 
 @router.get("/jobs/{job_id}")
 def get_job(job_id: str,db: Session=Depends(get_db)):
-    job=db.get(ProcessingJob,job_id)
+    try:
+        job=require_local_job(db, job_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=404,detail=str(exc)) from exc
     if job is None: raise HTTPException(status_code=404,detail="Processing job not found.")
     stages=db.scalars(select(ProcessingStage).where(ProcessingStage.processing_job_id==job.id).order_by(ProcessingStage.ordinal)).all()
     return {"id":job.id,"document_version_id":job.document_version_id,"status":job.status,"attempts":job.attempts,"started_at":job.started_at,"finished_at":job.finished_at,"error":(job.metadata_json or {}).get("error"),"stages":[{"name":s.stage_name,"status":s.status,"progress":s.progress,"error":s.error_message} for s in stages]}
