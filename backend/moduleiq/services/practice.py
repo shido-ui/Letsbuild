@@ -104,6 +104,7 @@ def create_session(
         knowledge_base_id=knowledge_base_id,
         mode=mode,
         status="active",
+        learner_profile_id=learner_profile_id,
         metadata_json={
             "version": 1,
             "question_ids": ids,
@@ -215,7 +216,6 @@ def attempt(
             skipped=skipped,
             time_ms=max(0, time_ms) if time_ms is not None else None,
             confidence=confidence,
-        )
     )
     db.add(new_attempt)
     if session.learner_profile_id:
