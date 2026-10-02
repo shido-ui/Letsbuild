@@ -24,12 +24,16 @@ def get_items(knowledge_base_id:str,status:str|None="open",limit:int=100,db:Sess
 def create_item(p:CreateReviewRequest,db:Session=Depends(get_db)):
     try:
         require_local_kb(db,p.knowledge_base_id)
-        return create_review_item(db,p.knowledge_base_id,p.entity_type,p.entity_id,p.reason,p.metadata)
+        result=create_review_item(db,p.knowledge_base_id,p.entity_type,p.entity_id,p.reason,p.metadata)
+        db.commit()
+        return result
     except ValueError as e: raise HTTPException(404,str(e))
 @router.patch("/items/{item_id}")
 def update_item(item_id:str,p:UpdateReviewRequest,db:Session=Depends(get_db)):
     try:
         require_local_review(db,item_id)
-        return update_review_item(db,item_id,p.status,p.reason)
+        result=update_review_item(db,item_id,p.status,p.reason)
+        db.commit()
+        return result
     except LookupError as e:raise HTTPException(404,str(e))
     except ValueError as e:raise HTTPException(400,str(e))
