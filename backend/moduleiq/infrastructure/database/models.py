@@ -283,6 +283,7 @@ class AIProvider(IdMixin, TimestampMixin, Base):
     provider_type: Mapped[str]=mapped_column(String(50), nullable=False)
     display_name: Mapped[str|None]=mapped_column(String(200))
     model_name: Mapped[str|None]=mapped_column(String(200))
+    base_url: Mapped[str|None]=mapped_column(String(1000))
     enabled: Mapped[bool]=mapped_column(Boolean, default=True, nullable=False)
 
 class Credential(IdMixin, TimestampMixin, Base):
