@@ -10,6 +10,7 @@ class Settings(BaseSettings):
     data_dir: str = "./data"
     storage_root: str = "./data/storage"
     max_upload_bytes: int = 250 * 1024 * 1024
+    max_pdf_pages: int = 10000
     mineru_tier: str = "standard"
     mineru_ocr_mode: str = "auto"
     mineru_image_analysis: bool = True

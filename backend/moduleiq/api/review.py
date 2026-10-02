@@ -18,7 +18,9 @@ class UpdateReviewRequest(BaseModel):
     reason:str|None=Field(default=None,min_length=1,max_length=100)
 @router.get("/items")
 def get_items(knowledge_base_id:str,status:str|None="open",limit:int=100,db:Session=Depends(get_db)):
-    try:return {"items":list_review_items(db,knowledge_base_id,status,limit)}
+    try:
+        require_local_kb(db, knowledge_base_id)
+        return {"items":list_review_items(db,knowledge_base_id,status,limit)}
     except ValueError as e:raise HTTPException(400,str(e))
 @router.post("/items")
 def create_item(p:CreateReviewRequest,db:Session=Depends(get_db)):
