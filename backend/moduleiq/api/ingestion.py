@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from moduleiq.infrastructure.database.models import KnowledgeBase, ProcessingJob, ProcessingStage
 from moduleiq.infrastructure.database.session import get_db
 from moduleiq.services.ingestion import IngestionError, create_ingestion_job, get_or_create_knowledge_base
-from moduleiq.workers.ingestion import prepare_document
+from moduleiq.workers.ingestion import process_document
 router=APIRouter(prefix="/ingestion",tags=["ingestion"])
 
 class UploadResponse(BaseModel):
