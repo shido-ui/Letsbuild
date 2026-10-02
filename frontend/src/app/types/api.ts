@@ -1,6 +1,6 @@
 export type ProviderType = "gemini" | "openai" | "openai_compatible" | "local";
 
-export type ProviderSummary = {
+export type Provider = {
   id: string;
   provider_type: ProviderType;
   model_name: string | null;
@@ -11,4 +11,5 @@ export type ProviderSummary = {
   key_fingerprint: string | null;
 };
 
+export type ProviderSummary = Provider;
 export type ApiError = { detail?: string; message?: string };
