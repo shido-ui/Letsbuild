@@ -10,6 +10,7 @@ dependencies = [
   "pydantic-settings>=2.10,<3",
   "huey>=3.4,<4",
   "python-multipart>=0.0.20",
+  "pypdf>=6.1,<7",
   "sqlalchemy>=2.0.44,<2.1",
   "alembic>=1.17,<2",
 ]
