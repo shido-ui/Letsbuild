@@ -1,7 +1,10 @@
 from datetime import datetime, timedelta
 from uuid import uuid4
 
-from sqlalchemy import select
+from sqlalchemy import select, create_engine, event
+from sqlalchemy.orm import Session
+from moduleiq.infrastructure.database.base import Base
+from moduleiq.infrastructure.database import models_import  # noqa: F401
 
 from moduleiq.infrastructure.database.models import (
     AnalyticsEvent,
@@ -19,6 +22,15 @@ from moduleiq.infrastructure.database.models import (
     Section,
 )
 from moduleiq.services.analytics import get_summary, log_event
+
+
+def make_db(tmp_path):
+    engine = create_engine(f"sqlite:///{tmp_path / 'analytics.db'}")
+    @event.listens_for(engine, "connect")
+    def enable_fk(dbapi_connection, _):
+        dbapi_connection.execute("PRAGMA foreign_keys=ON")
+    Base.metadata.create_all(engine)
+    return Session(engine)
 
 
 def roots(db):
@@ -46,11 +58,15 @@ def roots(db):
     mastery = TopicMastery(id=str(uuid4()), learner_profile_id=profile.id, topic_id=topic.id, mastery=0.62, confidence=0.71)
     db.add(mastery)
     db.flush()
-    return user, kb, topic, profile
+    questions = [Question(id=str(uuid4()), knowledge_base_id=kb.id, text=f"Question {i}", question_type="mcq") for i in range(3)]
+    db.add_all(questions)
+    db.flush()
+    return user, kb, topic, profile, questions
 
 
-def test_analytics_summary_uses_persisted_practice_and_mastery(db):
-    user, kb, topic, profile = roots(db)
+def test_analytics_summary_uses_persisted_practice_and_mastery(tmp_path):
+    db = make_db(tmp_path)
+    user, kb, topic, profile, questions = roots(db)
     session = PracticeSession(
         id=str(uuid4()), knowledge_base_id=kb.id, learner_profile_id=profile.id,
         mode="fast", status="completed",
@@ -61,9 +77,9 @@ def test_analytics_summary_uses_persisted_practice_and_mastery(db):
     db.add(session)
     db.flush()
     db.add_all([
-        PracticeAttempt(id=str(uuid4()), session_id=session.id, question_id=str(uuid4()), is_correct=True, skipped=False, time_ms=1200),
-        PracticeAttempt(id=str(uuid4()), session_id=session.id, question_id=str(uuid4()), is_correct=False, skipped=False, time_ms=1800),
-        PracticeAttempt(id=str(uuid4()), session_id=session.id, question_id=str(uuid4()), is_correct=None, skipped=True),
+        PracticeAttempt(id=str(uuid4()), session_id=session.id, question_id=questions[0].id, is_correct=True, skipped=False, time_ms=1200),
+        PracticeAttempt(id=str(uuid4()), session_id=session.id, question_id=questions[1].id, is_correct=False, skipped=False, time_ms=1800),
+        PracticeAttempt(id=str(uuid4()), session_id=session.id, question_id=questions[2].id, is_correct=None, skipped=True),
     ])
     db.flush()
     log_event(db, "practice_session_completed", user_id=user.id, knowledge_base_id=kb.id, metadata={"score": 50})
@@ -79,3 +95,4 @@ def test_analytics_summary_uses_persisted_practice_and_mastery(db):
     assert summary["overall_mastery"] == 62.0
     assert summary["weak_topics"][0]["topic"] == "Motion"
     assert summary["recent_events"][0]["event_type"] == "practice_session_completed"
+    db.close()
