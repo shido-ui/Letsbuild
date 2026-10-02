@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from moduleiq.infrastructure.database.models import AIProvider, Credential, User
 from moduleiq.infrastructure.database.session import get_db
+from moduleiq.core.security import local_user
 from moduleiq.services.ai.crypto import CredentialCipher
 from moduleiq.services.ai.errors import AIProviderError
 from moduleiq.services.ai.provider_switching import (
@@ -44,7 +45,7 @@ class ProviderOut(BaseModel):
 
 
 def _user(db: Session) -> User | None:
-    return db.scalar(select(User).order_by(User.created_at))
+    return local_user(db)
 
 
 def _owned_provider(db: Session, user_id: str, provider_id: str) -> AIProvider:
