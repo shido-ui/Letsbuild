@@ -43,7 +43,7 @@ def process_document(job_id: str)->str:
             _set_stage(db,job.id,4,"complete",1.0); _set_stage(db,job.id,5,"processing",0.0); _set_stage(db,job.id,5,"complete",1.0)
             version.processing_status="ready"; job.status="complete"; job.finished_at=datetime.now(timezone.utc); db.commit()
         except MinerUUnavailable as exc:
-            _set_stage(db,job.id,2,"failed",0.0,str(exc)); version.processing_status="engine_unavailable"; job.status="failed"; job.metadata_json={**(job.metadata_json or {}),"error":str(exc)}; job.finished_at=datetime.now(timezone.utc); db.commit(); raise
+            _set_stage(db,job.id,2,"failed",0.0,str(exc)); version.processing_status="engine_unavailable"; job.status="failed"; job.metadata_json={**(job.metadata_json or {}),"error":str(exc)}; job.finished_at=datetime.now(timezone.utc); db.commit(); return job_id
         except Exception as exc:
-            _set_stage(db,job.id,2,"failed",0.0,str(exc)); version.processing_status="extraction_failed"; job.status="retrying"; job.error_message=str(exc); db.commit(); raise
+            _set_stage(db,job.id,2,"failed",0.0,str(exc)); version.processing_status="extraction_failed"; job.status="retrying"; job.metadata_json={**(job.metadata_json or {}),"error":str(exc)}; db.commit(); raise
     return job_id

@@ -4,8 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 from sqlalchemy.orm import Session
 
-from moduleiq.infrastructure.database.session import get_db
 from moduleiq.core.security import require_local_kb, require_local_session
+from moduleiq.infrastructure.database.session import get_db
 from moduleiq.services.practice import (
     attempt,
     create_session,
@@ -45,6 +45,7 @@ def _error(exc: ValueError) -> HTTPException:
 @router.post("/sessions")
 def create(request: CreatePracticeRequest, db: Session = Depends(get_db)):
     try:
+        require_local_kb(db, request.knowledge_base_id)
         return create_session(
             db,
             request.knowledge_base_id,
@@ -62,6 +63,7 @@ def create(request: CreatePracticeRequest, db: Session = Depends(get_db)):
 @router.get("/sessions/{session_id}")
 def read(session_id: str, db: Session = Depends(get_db)):
     try:
+        require_local_session(db, session_id)
         return get_session(db, session_id)
     except ValueError as exc:
         raise _error(exc) from exc
@@ -70,6 +72,7 @@ def read(session_id: str, db: Session = Depends(get_db)):
 @router.post("/sessions/{session_id}/attempt")
 def submit(session_id: str, request: AttemptRequest, db: Session = Depends(get_db)):
     try:
+        require_local_session(db, session_id)
         return attempt(
             db,
             session_id,
@@ -86,6 +89,7 @@ def submit(session_id: str, request: AttemptRequest, db: Session = Depends(get_d
 @router.post("/sessions/{session_id}/pause")
 def pause(session_id: str, db: Session = Depends(get_db)):
     try:
+        require_local_session(db, session_id)
         return pause_session(db, session_id)
     except ValueError as exc:
         raise _error(exc) from exc
@@ -94,6 +98,7 @@ def pause(session_id: str, db: Session = Depends(get_db)):
 @router.post("/sessions/{session_id}/resume")
 def resume(session_id: str, db: Session = Depends(get_db)):
     try:
+        require_local_session(db, session_id)
         return resume_session(db, session_id)
     except ValueError as exc:
         raise _error(exc) from exc
@@ -102,6 +107,7 @@ def resume(session_id: str, db: Session = Depends(get_db)):
 @router.post("/sessions/{session_id}/finish")
 def finish(session_id: str, db: Session = Depends(get_db)):
     try:
+        require_local_session(db, session_id)
         return finish_session(db, session_id)
     except ValueError as exc:
         raise _error(exc) from exc
@@ -110,6 +116,7 @@ def finish(session_id: str, db: Session = Depends(get_db)):
 @router.get("/sessions/{session_id}/results")
 def results(session_id: str, db: Session = Depends(get_db)):
     try:
+        require_local_session(db, session_id)
         return get_results(db, session_id)
     except ValueError as exc:
         raise _error(exc) from exc

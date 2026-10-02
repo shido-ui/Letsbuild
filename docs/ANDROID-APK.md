@@ -1,19 +1,19 @@
 # ModuleIQ Android APK
 
-ModuleIQ is packaged as an Android shell around the production PWA rather than maintaining a second native UI.
+ModuleIQ is packaged as an Android shell around the same PWA.
 
-## Runtime
+## Runtime modes
 
-Android APK → bundled ModuleIQ PWA → local ModuleIQ FastAPI backend → SQLite/files → optional AI provider.
+Local Android uses the bundled PWA with FastAPI at `http://127.0.0.1:8000`. The APK build sets the API origin explicitly for loopback.
 
-The APK does not contain an AI API key.
+Hosted deployments can set `VITE_API_BASE_URL` to an HTTPS API origin, or leave it empty when frontend and API share the same origin.
 
-The bundled UI expects the backend on the same Android device at http://127.0.0.1:8000. The backend remains responsible for persistence, credentials, processing and AI-provider access.
+The APK never contains an AI API key. Provider credentials remain in the backend credential store.
 
 ## Build
 
-The Android workflow builds the web app, generates the Capacitor Android project, synchronizes the web assets, builds a debug APK, verifies the APK archive, and uploads it as a GitHub Actions artifact.
+The Android workflow builds the PWA, generates the Capacitor project, synchronizes web assets, builds a debug APK, validates the archive, and uploads it as an artifact.
 
-## Security
+## Network security
 
-The local HTTP scheme is intentional for loopback communication. Remote production deployments should use HTTPS and an explicit API origin.
+HTTP is opt-in for local loopback builds through `CAPACITOR_ALLOW_CLEARTEXT=true`. Remote deployments should use HTTPS.

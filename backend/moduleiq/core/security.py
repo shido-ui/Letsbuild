@@ -1,7 +1,7 @@
 from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from moduleiq.infrastructure.database.models import AIProvider, KnowledgeBase, PracticeSession, ReviewItem, User, Workspace
+from moduleiq.infrastructure.database.models import AIProvider, KnowledgeBase, LearnerProfile, PracticeSession, ReviewItem, User, Workspace
 LOCAL_EMAIL = "local@moduleiq"
 
 def local_user(db: Session) -> User | None:
@@ -26,3 +26,9 @@ def require_local_review(db: Session, item_id: str) -> ReviewItem:
     item = db.scalar(select(ReviewItem).join(KnowledgeBase, ReviewItem.knowledge_base_id == KnowledgeBase.id).join(Workspace, KnowledgeBase.workspace_id == Workspace.id).join(User, Workspace.owner_id == User.id).where(ReviewItem.id == item_id, User.email == LOCAL_EMAIL))
     if item is None: raise ValueError("Review item not found")
     return item
+
+
+def require_local_profile(db: Session, profile_id: str) -> LearnerProfile:
+    profile = db.scalar(select(LearnerProfile).join(User, LearnerProfile.user_id == User.id).where(LearnerProfile.id == profile_id, User.email == LOCAL_EMAIL))
+    if profile is None: raise ValueError("Learner profile not found")
+    return profile
