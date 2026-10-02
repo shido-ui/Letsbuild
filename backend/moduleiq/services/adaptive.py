@@ -70,10 +70,10 @@ def update_from_attempt(db: Session, attempt: PracticeAttempt) -> dict[str, Any]
         db.add(mastery)
         db.flush()
 
-    # Small, bounded Bayesian-like update: correct answers raise mastery,
-    # incorrect/skipped answers lower it, with diminishing step size.
+    # Small, bounded update: correct answers raise mastery, incorrect answers lower it.
+    # A skipped question provides no correctness evidence and leaves mastery unchanged.
     prior = mastery.mastery
-    evidence = 0.05 if attempt.skipped else (0.12 if attempt.is_correct else -0.10)
+    evidence = 0.12 if attempt.is_correct else (-0.10 if not attempt.skipped else 0.0)
     weight = max(0.25, 1.0 - prior * 0.6)
     mastery.mastery = round(_clamp(prior + evidence * weight), 4)
     mastery.confidence = round(_clamp(mastery.confidence + (0.08 if attempt.is_correct else 0.04)), 4)
