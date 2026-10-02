@@ -49,7 +49,7 @@ def test_search_finds_structured_objects_cross_document_and_preserves_source(tmp
         p1 = Page(id="p1", document_version=v1, page_number=42)
         p2 = Page(id="p2", document_version=v2, page_number=7)
         b1 = Block(id="b1", page=p1, block_type="paragraph", ordinal=1, text="Gauss law uses cylindrical symmetry for an infinite line charge.")
-        section1 = Section(id="s1", document_version=v1, title="Electrostatics")
+        section1 = Section(id="s1", document_version_id=v1.id, title="Electrostatics")
         chapter1 = Chapter(id="c1", section=section1, title="Electric Flux", ordinal=1)
         topic1 = Topic(id="t1", chapter=chapter1, name="Gauss Law")
         sub1 = Subtopic(id="st1", topic=topic1, name="Symmetry")
