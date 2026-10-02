@@ -61,6 +61,33 @@ def _pdf_metadata(path: Path)->tuple[int,dict[str,object]]:
     except IngestionError: raise
     except Exception as exc: raise IngestionError(f"The PDF could not be parsed: {exc}") from exc
 
+def recover_ingestion_job(db: Session, job_id: str) -> ProcessingJob:
+    job = db.get(ProcessingJob, job_id)
+    if job is None:
+        raise IngestionError("Processing job not found.")
+    version = db.get(DocumentVersion, job.document_version_id)
+    if version is None:
+        raise IngestionError("Document version not found.")
+    if job.status not in {"failed", "retrying"}:
+        raise IngestionError("Only failed or retrying jobs can be recovered.")
+    job.status = "queued"
+    job.error_message = None
+    job.attempts = 0
+    job.started_at = None
+    job.finished_at = None
+    version.processing_status = "queued"
+    stages = db.scalars(select(ProcessingStage).where(ProcessingStage.processing_job_id == job.id)).all()
+    for stage in stages:
+        stage.status = "pending"
+        stage.progress = 0.0
+        stage.error_message = None
+        stage.started_at = None
+        stage.finished_at = None
+    db.commit()
+    db.refresh(job)
+    return job
+
+
 def create_ingestion_job(db: Session,upload: UploadFile,knowledge_base_id: str|None=None,on_duplicate: str="reject")->dict:
     if on_duplicate not in {"reject","reuse"}: raise IngestionError("on_duplicate must be 'reject' or 'reuse'.")
     kb=db.get(KnowledgeBase,knowledge_base_id) if knowledge_base_id else get_or_create_knowledge_base(db)
