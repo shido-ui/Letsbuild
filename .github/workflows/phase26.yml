@@ -1,0 +1,25 @@
+name: ModuleIQ Phase 26 Full Regression
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  full-regression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -e ".[dev]"
+      - run: python -m compileall backend
+      - run: mkdir -p data
+      - run: alembic -c alembic.ini upgrade head
+      - run: pytest -q
+      - run: pytest -q backend/tests/test_e2e.py backend/tests/test_security_isolation.py backend/tests/test_ai_provider_switching.py backend/tests/test_ingestion_recovery.py
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - run: cd frontend && npm install
+      - run: cd frontend && npm run build
+      - run: test -f frontend/dist/manifest.webmanifest
+      - run: test -f frontend/dist/sw.js
