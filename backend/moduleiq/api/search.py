@@ -20,6 +20,7 @@ def global_search(
     db: Session = Depends(get_db),
 ):
     try:
+        require_local_kb(db, knowledge_base_id)
         return search(
             db,
             knowledge_base_id,
