@@ -49,6 +49,7 @@ def overview(db: Session, kb_id: str) -> dict:
                 "id": m.id, "name": m.name, "media_type": m.media_type,
                 "size_bytes": m.size_bytes, "sha256": m.sha256,
                 "metadata": m.metadata_json,
+                "documents": [{"id": d.id, "title": d.title, "current_version_id": d.current_version_id, "metadata": d.metadata_json} for d in m.documents],
             } for m in materials
         ],
     }
