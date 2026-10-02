@@ -1,0 +1,26 @@
+name: ModuleIQ Release
+on:
+  push:
+    tags:
+      - "v*.*.*"
+permissions:
+  contents: write
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.12"}
+      - run: pip install -e ".[dev]"
+      - run: python -m compileall backend
+      - run: mkdir -p data
+      - run: alembic -c alembic.ini upgrade head
+      - run: pytest -q
+      - uses: actions/setup-node@v4
+        with: {node-version: "22"}
+      - run: cd frontend && npm install && npm run build
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" --title "ModuleIQ $GITHUB_REF_NAME" --notes-file RELEASE_NOTES_v0.1.0.md --verify-tag
