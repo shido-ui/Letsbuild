@@ -7,7 +7,7 @@ from moduleiq.infrastructure.database.models import (
     Subtopic, Topic, User, Workspace,
 )
 from moduleiq.services.search_engine import search
-from .test_database import make_engine
+from test_database import make_engine
 
 
 def _create_search_tables(session: Session) -> None:
