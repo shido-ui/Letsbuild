@@ -27,6 +27,7 @@ const CHUNK_PREFIX = "chunk:";
 const SECTION_PREFIX = "section:";
 const TOPIC_PREFIX = "topic:";
 const QUESTION_PREFIX = "question:";
+const SESSION_PREFIX = "session:";
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -95,6 +96,11 @@ export type LocalQuestion = {
   sourceTitle: string;
   createdAt: string;
 };
+
+export type LocalPracticeSession = { id: string; mode: string; questionIds: string[]; currentIndex: number; answers: Record<string, string>; correct: number; createdAt: string; completed: boolean; };
+
+export function getLocalPracticeSession(id: string): Promise<LocalPracticeSession | null> { return read<LocalPracticeSession>(SESSION_PREFIX + id); }
+export function saveLocalPracticeSession(value: LocalPracticeSession): Promise<void> { return write(SESSION_PREFIX + value.id, value); }
 
 export function getLocalQuestion(id: string): Promise<LocalQuestion | null> { return read<LocalQuestion>(QUESTION_PREFIX + id); }
 export function saveLocalQuestion(value: LocalQuestion): Promise<void> { return write(QUESTION_PREFIX + value.id, value); }
@@ -217,7 +223,7 @@ export async function clearLocalKnowledgeBase(): Promise<void> {
     cursorRequest.onsuccess = () => {
       const cursor = cursorRequest.result;
       if (!cursor) return;
-      if (typeof cursor.key === "string" && (cursor.key.startsWith(DOC_PREFIX) || cursor.key.startsWith(CHUNK_PREFIX) || cursor.key.startsWith(SECTION_PREFIX) || cursor.key.startsWith(TOPIC_PREFIX) || cursor.key.startsWith(QUESTION_PREFIX))) cursor.delete();
+      if (typeof cursor.key === "string" && (cursor.key.startsWith(DOC_PREFIX) || cursor.key.startsWith(CHUNK_PREFIX) || cursor.key.startsWith(SECTION_PREFIX) || cursor.key.startsWith(TOPIC_PREFIX) || cursor.key.startsWith(QUESTION_PREFIX) || cursor.key.startsWith(SESSION_PREFIX))) cursor.delete();
       cursor.continue();
     };
     cursorRequest.onerror = () => reject(cursorRequest.error);
