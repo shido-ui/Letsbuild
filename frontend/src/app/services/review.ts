@@ -1,0 +1,4 @@
+import {apiClient} from "../api/client";
+export async function listReviewItems(kbId:string,status="open"){const {data}=await apiClient.get("/review/items",{params:{knowledge_base_id:kbId,status}});return data.items;}
+export async function createReviewItem(payload:{knowledge_base_id:string;entity_type:string;entity_id:string;reason:string;metadata?:Record<string,unknown>}){const {data}=await apiClient.post("/review/items",payload);return data;}
+export async function updateReviewItem(id:string,payload:{status?:string;reason?:string}){const {data}=await apiClient.patch("/review/items/"+id,payload);return data;}
