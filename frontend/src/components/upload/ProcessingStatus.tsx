@@ -1,0 +1,2 @@
+import { CheckCircle2, CircleDot } from "lucide-react";
+export function ProcessingStatus({stages}:{stages:Array<{name:string;status:string;progress:number;error?:string|null}>}){return <div className="stage-list">{stages.map(s=><div className="stage" key={s.name}>{s.status==="complete"?<CheckCircle2 size={18}/>:<CircleDot size={18}/>}<span><b>{s.name.replaceAll("_"," ")}</b><small>{s.error||s.status}</small></span><strong>{Math.round((s.progress||0)*100)}%</strong></div>)}</div>}
