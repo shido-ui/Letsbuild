@@ -24,7 +24,6 @@ def upgrade() -> None:
     if "username" not in columns:
         op.add_column("users", sa.Column("username", sa.String(length=64), nullable=True))
         op.execute("UPDATE users SET username = 'legacy_' || substr(id, 1, 12) WHERE username IS NULL")
-        op.alter_column("users", "username", nullable=False)
         op.create_unique_constraint("uq_users_username", "users", ["username"])
 
     if "hashed_password" not in columns:
