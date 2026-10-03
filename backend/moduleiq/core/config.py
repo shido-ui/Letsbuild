@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     data_dir: str = "./data"
     storage_root: str = "./data/storage"
     max_upload_bytes: int = 250 * 1024 * 1024
+    max_request_bytes: int = 260 * 1024 * 1024
+    rate_limit_per_minute: int = 120
+    auth_rate_limit_per_minute: int = 15
     max_pdf_pages: int = 10000
     mineru_tier: str = "standard"
     mineru_ocr_mode: str = "auto"
