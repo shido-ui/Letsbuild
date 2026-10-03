@@ -1,0 +1,16 @@
+import { useEffect,useState } from "react";
+import { useSearchParams,Link } from "react-router-dom";
+import { AppChrome } from "../app/layout/AppChrome";
+import { Card } from "../components/common/Card";
+import { LoadingSpinner } from "../components/common/LoadingSpinner";
+import { getQuestion } from "../app/services/questions";
+import { listProviders } from "../app/api/providers";
+import { apiClient } from "../app/api/client";
+export default function QuestionDetailPage(){
+ const [params]=useSearchParams();const id=params.get("id");const [q,setQ]=useState<any>();const [solutions,setSolutions]=useState<any[]>([]);const [providers,setProviders]=useState<any[]>([]);const [provider,setProvider]=useState("");const [busy,setBusy]=useState(false);const [error,setError]=useState("");
+ useEffect(()=>{if(id)getQuestion(id).then(setQ).catch(e=>setError(e instanceof Error?e.message:"Question unavailable"));listProviders().then(v=>{setProviders(v);setProvider(v.find((x:any)=>x.active)?.id||v[0]?.id||"")}).catch(()=>{})},[id]);
+ useEffect(()=>{if(!id)return;apiClient.get("/solutions/question/"+id).then(r=>setSolutions(r.data.solutions||[])).catch(()=>{})},[id]);
+ const generate=async()=>{if(!id||!provider)return;setBusy(true);try{const r=await apiClient.post("/solutions/generate/"+id,null,{params:{provider_id:provider}});setSolutions(s=>[...s,{type:"ai",body:r.data.ai_solution?.answer||r.data.answer||"AI solution generated.",confidence:r.data.ai_solution?.confidence}]);}catch(e){setError((e as any)?.response?.data?.detail||"AI generation failed")}finally{setBusy(false)}};
+ if(!id)return <AppChrome title="Question Detail"><Card><p>Select a question from the explorer first.</p><Link className="btn" to="/questions">Back</Link></Card></AppChrome>;
+ return <AppChrome title="Question Detail">{!q&&!error&&<LoadingSpinner/>}{error&&<Card><p className="upload-error">{error}</p></Card>}{q&&<><Card><span className="tag purple">{q.question_type}</span><h1>{q.text}</h1><p>{q.classification?Object.values(q.classification).filter(Boolean).join(" · "):"No classification"}</p><div className="options">{q.options?.map((o:any,i:number)=><div className="option" key={o.id}><b>{String.fromCharCode(65+i)}</b>{o.text}</div>)}</div></Card><Card><div className="title"><div><h3>AI solution</h3><p>Only connected providers are offered; original source solutions remain separate.</p></div><div><select value={provider} onChange={e=>setProvider(e.target.value)}><option value="">No provider</option>{providers.filter((p:any)=>p.connected).map((p:any)=><option key={p.id} value={p.id}>{p.provider_type} · {p.model_name||"default"}</option>)}</select><button className="btn primary" disabled={!provider||busy} onClick={()=>void generate()}>{busy?"Generating…":"Generate"}</button></div></div>{solutions.length?solutions.map((s:any)=><div className="solution" key={s.id||s.type}><span className={s.type==="source"?"tag green":"tag purple"}>{s.type}</span><div className="solution-body">{s.body}</div></div>):<p>No persisted solutions yet.</p>}</Card></>}</AppChrome>;
+}
