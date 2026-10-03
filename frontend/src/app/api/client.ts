@@ -26,3 +26,14 @@ export function setApiToken(token: string | null) {
   if (token) apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
   else delete apiClient.defaults.headers.common.Authorization;
 }
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && window.location.pathname !== "/login") {
+      setApiToken(null);
+      window.dispatchEvent(new CustomEvent("moduleiq:auth-expired"));
+    }
+    return Promise.reject(error);
+  },
+);
