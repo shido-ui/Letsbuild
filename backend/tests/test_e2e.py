@@ -8,6 +8,7 @@ from moduleiq.infrastructure.database import models_import  # noqa: F401
 from moduleiq.infrastructure.database.models import User, Workspace, KnowledgeBase, Question, QuestionOption
 from moduleiq.infrastructure.database.session import get_db
 from moduleiq.main import app
+from moduleiq.core.dependencies import get_current_user
 
 
 def test_api_learning_journey(tmp_path):
@@ -35,6 +36,7 @@ def test_api_learning_journey(tmp_path):
             yield db
 
     app.dependency_overrides[get_db]=override_db
+    app.dependency_overrides[get_current_user]=lambda: user
     try:
         client=TestClient(app)
         listed=client.get("/api/ingestion/knowledge-bases")
