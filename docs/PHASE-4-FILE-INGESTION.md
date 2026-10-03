@@ -19,6 +19,9 @@
 - Duplicate detection by SHA-256 within a knowledge base
 - Explicit duplicate policy: reject or reuse
 - Huey preparation worker boundary with retry policy
+- SQLite FTS5 search index with deterministic rebuild fingerprinting
+- Durable vector embedding storage with model/dimension/content-hash metadata
+- In-process cosine vector retrieval for semantic search without a native vector extension
 - Job status endpoint: `GET /api/ingestion/jobs/{job_id}`
 - Frontend Upload screen now sends real files to the backend
 - Frontend Processing screen polls and displays the real processing job
@@ -34,6 +37,8 @@ Authentication is not yet implemented because it belongs to the later security/a
 - [x] SHA-256 duplicate detection
 - [x] Material/document/version/job creation
 - [x] Processing stage creation
+- [x] FTS5 indexing and safe query construction
+- [x] Vector storage round-trip and cosine retrieval
 - [x] Frontend-to-backend upload path
 - [x] Frontend CI build
 - [x] Backend Phase 4 CI tests

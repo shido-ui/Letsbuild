@@ -1,0 +1,24 @@
+name: ModuleIQ Plan A Standalone Verification
+
+on:
+  push:
+    branches: [phase-authentication]
+  pull_request:
+    branches: [phase-authentication]
+  workflow_dispatch:
+
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install
+        run: npm install
+      - name: Build
+        run: npm run build

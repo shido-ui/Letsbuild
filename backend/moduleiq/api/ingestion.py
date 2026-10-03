@@ -1,5 +1,5 @@
 from __future__ import annotations
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, Request
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -8,6 +8,7 @@ from moduleiq.core.security import require_local_kb, require_local_job
 from moduleiq.infrastructure.database.session import get_db
 from moduleiq.services.ingestion import IngestionError, create_ingestion_job, get_or_create_knowledge_base, recover_ingestion_job
 from moduleiq.workers.ingestion import process_document
+from moduleiq.core.config import settings
 router=APIRouter(prefix="/ingestion",tags=["ingestion"])
 
 class UploadResponse(BaseModel):
@@ -33,8 +34,12 @@ def create_knowledge_base(name: str="My Knowledge",db: Session=Depends(get_db)):
     return {"id":kb.id,"workspace_id":kb.workspace_id,"name":kb.name}
 
 @router.post("/upload",response_model=UploadResponse,status_code=201)
-def upload_material(file: UploadFile=File(...),knowledge_base_id: str|None=None,on_duplicate: str="reject",db: Session=Depends(get_db)):
+def upload_material(request: Request, file: UploadFile=File(...),knowledge_base_id: str|None=None,on_duplicate: str="reject",db: Session=Depends(get_db)):
     try:
+        if request.headers.get("content-length") and int(request.headers["content-length"]) > settings.max_upload_bytes:
+            raise HTTPException(status_code=413, detail="Upload exceeds configured maximum size.")
+        if file.content_type not in settings.allowed_media_types:
+            raise HTTPException(status_code=415, detail="Unsupported media type.")
         if knowledge_base_id is not None:
             require_local_kb(db, knowledge_base_id)
         result=create_ingestion_job(db,file,knowledge_base_id,on_duplicate)

@@ -25,7 +25,9 @@
     "react-router-dom": "^7.9.4",
     "recharts": "^3.2.1",
     "zod": "^4.1.12",
-    "zustand": "^5.0.8"
+    "zustand": "^5.0.8",
+    "mammoth": "^1.11.0",
+    "pdfjs-dist": "6.2.108"
   },
   "devDependencies": {
     "@capacitor/cli": "^8.5.2",
