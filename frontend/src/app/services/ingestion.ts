@@ -1,0 +1,6 @@
+import {apiClient} from "../api/client";
+export type UploadResult={duplicate:boolean;knowledge_base_id?:string;material_id?:string;document_id?:string;document_version_id?:string;processing_job_id?:string;filename?:string;size_bytes?:number;sha256?:string;page_count?:number;status?:string};
+export type ProcessingJob={id:string;document_version_id:string;status:string;attempts:number;error?:string|null;stages:Array<{name:string;status:string;progress:number;error?:string|null}>};
+export async function uploadMaterial(file:File,kbId?:string,onProgress?:(p:number)=>void){const body=new FormData();body.append("file",file);if(kbId)body.append("knowledge_base_id",kbId);const {data}=await apiClient.post<UploadResult>("/ingestion/upload",body,{headers:{"Content-Type":"multipart/form-data"},onUploadProgress:e=>{if(e.total&&onProgress)onProgress(Math.round(e.loaded/e.total*100));}});return data;}
+export async function getProcessingJob(id:string){const {data}=await apiClient.get<ProcessingJob>("/ingestion/jobs/"+id);return data;}
+export async function retryProcessingJob(id:string){const {data}=await apiClient.post<ProcessingJob>("/ingestion/jobs/"+id+"/retry");return data;}
