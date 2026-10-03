@@ -20,3 +20,13 @@ export type LocalDocument = {
   pages: LocalPage[];
   error?: string;
 };
+
+export type LocalChunk = {
+  id: string;
+  documentId: string;
+  pageNumber: number;
+  ordinal: number;
+  text: string;
+  characterCount: number;
+  tokenEstimate: number;
+};
