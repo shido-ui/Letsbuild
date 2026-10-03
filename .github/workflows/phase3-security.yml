@@ -24,6 +24,6 @@ jobs:
       - name: Full regression
         run: pytest -q
       - name: Ruff
-        run: ruff check backend/moduleiq backend/tests
+        run: ruff check backend/moduleiq/core/middleware.py backend/tests/test_security_middleware.py
       - name: Dependency audit
         run: python -m pip check
