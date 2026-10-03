@@ -1,7 +1,7 @@
 from __future__ import annotations
 from datetime import datetime
 from typing import Any
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Index, Integer, LargeBinary, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .base import Base, IdMixin, JSONMixin, TimestampMixin, utc_now
 
@@ -100,6 +100,7 @@ class Topic(IdMixin, TimestampMixin, JSONMixin, Base):
     chapter_id: Mapped[str|None]=mapped_column(ForeignKey("chapters.id", ondelete="CASCADE"), index=True)
     parent_id: Mapped[str|None]=mapped_column(ForeignKey("topics.id", ondelete="CASCADE"), index=True)
     name: Mapped[str]=mapped_column(String(500), nullable=False)
+    embedding: Mapped[bytes|None]=mapped_column(LargeBinary)
     chapter: Mapped[Chapter|None]=relationship(back_populates="topics")
     parent: Mapped["Topic|None"]=relationship(remote_side="Topic.id", back_populates="children")
     children: Mapped[list["Topic"]]=relationship(back_populates="parent", cascade="all, delete-orphan")
@@ -116,6 +117,7 @@ class Concept(IdMixin, TimestampMixin, JSONMixin, Base):
     __tablename__="concepts"
     subtopic_id: Mapped[str|None]=mapped_column(ForeignKey("subtopics.id", ondelete="CASCADE"), index=True)
     name: Mapped[str]=mapped_column(String(500), nullable=False)
+    embedding: Mapped[bytes|None]=mapped_column(LargeBinary)
     definition: Mapped[str|None]=mapped_column(Text)
     subtopic: Mapped[Subtopic|None]=relationship(back_populates="concepts")
 
@@ -179,6 +181,7 @@ class Question(IdMixin, TimestampMixin, JSONMixin, Base):
     __tablename__="questions"
     knowledge_base_id: Mapped[str]=mapped_column(ForeignKey("knowledge_bases.id", ondelete="CASCADE"), nullable=False, index=True)
     text: Mapped[str]=mapped_column(Text, nullable=False)
+    embedding: Mapped[bytes|None]=mapped_column(LargeBinary)
     question_type: Mapped[str]=mapped_column(String(50), nullable=False, index=True)
     difficulty_id: Mapped[str|None]=mapped_column(ForeignKey("difficulty_assessments.id", ondelete="SET NULL"))
     classification_id: Mapped[str|None]=mapped_column(ForeignKey("classifications.id", ondelete="SET NULL"))
