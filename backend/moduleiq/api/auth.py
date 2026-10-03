@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import Optional
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
@@ -80,6 +80,7 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
         user.is_active = True
     else:
         user = User(
+            id=str(uuid4()),
             username=user_data.username,
             email=str(user_data.email),
             hashed_password=get_password_hash(user_data.password),
