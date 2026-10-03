@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
+from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
@@ -35,7 +36,7 @@ class UserCreate(BaseModel):
 
 class UserResponse(BaseModel):
     id: str
-    username: str
+    username: str | None
     email: EmailStr
     display_name: str | None = None
     is_active: bool
@@ -112,6 +113,7 @@ def register(body: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=409, detail="Username or email already registered")
 
     user = User(
+        id=uuid4().hex,
         username=body.username,
         email=body.email,
         hashed_password=password_hash.hash(body.password),
