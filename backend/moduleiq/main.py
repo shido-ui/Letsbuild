@@ -21,12 +21,17 @@ from moduleiq.api.review import router as review_router
 from moduleiq.api.analytics import router as analytics_router
 from moduleiq.api.portability import router as portability_router
 from moduleiq.core.config import settings
+from moduleiq.core.middleware import RequestLoggingMiddleware,SecurityHeadersMiddleware,RateLimitMiddleware,RequestSizeLimitMiddleware
 
 production = settings.environment.lower() == "production"
 app = FastAPI(title="ModuleIQ API", version="0.1.0", docs_url=None if production else "/api/docs", redoc_url=None if production else "/api/redoc")
 
 if production:
     app.add_middleware(TrustedHostMiddleware, allowed_hosts=settings.allowed_hosts)
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(RequestLoggingMiddleware)
+app.add_middleware(RateLimitMiddleware, requests_per_minute=120)
+app.add_middleware(RequestSizeLimitMiddleware, max_body_bytes=settings.max_upload_bytes + 2 * 1024 * 1024)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.cors_origins,
