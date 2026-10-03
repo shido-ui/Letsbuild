@@ -5,12 +5,14 @@ import { AppChrome } from "../app/layout/AppChrome";
 import { apiClient, getRuntimeMode } from "../app/api/client";
 import { addLocalMaterial } from "../app/api/localDb";
 import { processLocalDocument } from "../app/api/localDocumentEngine";
+import { buildLocalChunks } from "../app/api/localChunks";
+import { buildLocalStructure } from "../app/api/localStructure";
 import { useKnowledgeBase } from "../app/hooks/useKnowledgeBase";
 
 export function UploadPage() {
  const {id,refresh}=useKnowledgeBase(); const nav=useNavigate(); const [busy,setBusy]=useState(false); const [status,setStatus]=useState("");
  const onDrop=async(files:File[])=>{if(!files.length||!id)return;setBusy(true);setStatus("");
- try{if(getRuntimeMode()==="standalone"){let ready=0;let failed=0;for(const file of files){const before=await addLocalMaterial(file,id);const material=before.materials.find((item)=>item.name===file.name&&item.size_bytes===file.size);if(!material)continue;const doc=material.documents[0];if(!doc)continue;const result=await processLocalDocument(material.id,doc.id);if(result.status==="ready")ready+=1;else failed+=1;}setStatus(failed?`${ready} material(s) extracted locally; ${failed} failed.`:`${ready} material(s) extracted locally and are ready for search.`);await refresh();return;}
+ try{if(getRuntimeMode()==="standalone"){let ready=0;let failed=0;for(const file of files){const before=await addLocalMaterial(file,id);const material=before.materials.find((item)=>item.name===file.name&&item.size_bytes===file.size);if(!material)continue;const doc=material.documents[0];if(!doc)continue;const result=await processLocalDocument(material.id,doc.id);if(result.status==="ready"){await buildLocalChunks(result.id);await buildLocalStructure(result.id);ready+=1}else failed+=1;}setStatus(failed?`${ready} material(s) extracted locally; ${failed} failed.`:`${ready} material(s) extracted locally and are ready for search.`);await refresh();return;}
  for(const file of files){const body=new FormData();body.append("file",file);body.append("knowledge_base_id",id);const r=await apiClient.post("/ingestion/upload",body,{headers:{"Content-Type":"multipart/form-data"}});nav("/processing/"+r.data.processing_job_id);}}
  catch(e:any){setStatus(e.response?.data?.detail||e.message||"Upload failed.")}finally{setBusy(false);void refresh()}};
  const dz=useDropzone({onDrop,disabled:busy,accept:{"application/pdf":[".pdf"],"application/vnd.openxmlformats-officedocument.wordprocessingml.document":[".docx"]},maxSize:100*1024*1024});
