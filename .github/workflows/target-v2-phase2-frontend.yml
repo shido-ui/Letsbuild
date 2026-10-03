@@ -1,0 +1,31 @@
+name: ModuleIQ V2 Phase 2 Frontend
+on:
+  push:
+    branches: [target/v2-phase-2-frontend]
+  workflow_dispatch:
+jobs:
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Backend regression
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          mkdir -p data
+          alembic upgrade head
+          pytest -q
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Frontend build
+        working-directory: frontend
+        env:
+          VITE_API_BASE_URL: /api
+        run: |
+          npm install
+          npm run typecheck
+          npm run build
