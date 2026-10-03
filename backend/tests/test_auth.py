@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from moduleiq.infrastructure.database.base import Base
 from moduleiq.infrastructure.database import models_import  # noqa: F401
 from moduleiq.infrastructure.database.models import User
+from moduleiq.infrastructure.database.session import get_db
 from moduleiq.api.auth import router as auth_router
 from fastapi import FastAPI
 
@@ -22,7 +23,6 @@ def test_register_login_and_me(tmp_path):
         with Session(engine) as db:
             yield db
 
-    from moduleiq.api.auth import get_db
     app.dependency_overrides[get_db] = override_db
 
     client = TestClient(app)
