@@ -16,8 +16,8 @@ import PracticeResultsPage from "../../pages/PracticeResultsPage";
 import AnalyticsPage from "../../pages/AnalyticsPage";
 import SearchPage from "../../pages/SearchPage";
 import FirstRunPage from "../../pages/FirstRunPage";
-import { LoginPage } from "../../pages/LoginPage";
-import { RegisterPage } from "../../pages/RegisterPage";
+import LoginPage from "../../pages/LoginPage";
+import RegisterPage from "../../pages/RegisterPage";
 import { RequireAuth } from "./RequireAuth";
 
 export function AppRoutes():ReactElement{
