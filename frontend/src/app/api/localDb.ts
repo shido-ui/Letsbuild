@@ -97,6 +97,23 @@ export async function addLocalMaterial(file: File, knowledgeBaseId: string): Pro
   return next;
 }
 
+export async function listLocalDocuments(): Promise<LocalDocument[]> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const documents: LocalDocument[] = [];
+    const request = db.transaction(STORE, "readonly").objectStore(STORE).openCursor();
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (!cursor) { resolve(documents); return; }
+      if (typeof cursor.key === "string" && cursor.key.startsWith(DOC_PREFIX)) {
+        documents.push(cursor.value as LocalDocument);
+      }
+      cursor.continue();
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
+
 export async function clearLocalKnowledgeBase(): Promise<void> {
   const db = await openDb();
   await new Promise<void>((resolve, reject) => {
