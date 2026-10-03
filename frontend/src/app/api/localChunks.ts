@@ -9,7 +9,7 @@ function estimateTokens(text: string): number {
   return Math.max(1, Math.ceil(text.length / 4));
 }
 
-function makeChunks(documentId: string, pageNumber: number, text: string, startOrdinal: number): LocalChunk[] {
+async function makeChunks(documentId: string, pageNumber: number, text: string, startOrdinal: number): LocalChunk[] {
   const normalized = text.replace(/\s+/g, " ").trim();
   if (!normalized) return [];
   const chunks: LocalChunk[] = [];
@@ -41,7 +41,7 @@ export async function buildLocalChunks(documentId: string): Promise<LocalChunk[]
   const chunks: LocalChunk[] = [];
   let ordinal = 0;
   for (const page of document.pages) {
-    const pageChunks = makeChunks(document.id, page.pageNumber, page.text, ordinal);
+    const pageChunks = await makeChunks(document.id, page.pageNumber, page.text, ordinal);
     chunks.push(...pageChunks);
     ordinal += pageChunks.length;
   }
