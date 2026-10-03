@@ -17,6 +17,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
           python -m compileall -q backend
+          mkdir -p data
           alembic upgrade head
           pytest -q backend/tests/test_auth.py backend/tests/test_security_isolation.py
       - uses: actions/setup-node@v4
