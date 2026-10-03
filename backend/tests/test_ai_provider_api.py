@@ -65,7 +65,7 @@ def test_provider_mutations_are_owner_scoped(tmp_path, monkeypatch):
     try:
         login = client.post("/api/auth/login", data={"username": "owner", "password": "password123"})
         assert login.status_code == 200
-        headers = {"Authorization": f"Bearer {login.json()["access_token"]}"}
+        headers = {"Authorization": f"Bearer {login.json()['access_token']}"}
         response = client.post("/api/ai/providers/owned-provider/test", headers=headers)
         assert response.status_code == 404
         response = client.delete("/api/ai/providers/owned-provider", headers=headers)
