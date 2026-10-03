@@ -8,6 +8,7 @@ from moduleiq.infrastructure.database.base import Base
 from moduleiq.infrastructure.database import models_import  # noqa: F401
 from moduleiq.infrastructure.database.models import AIProvider, Credential, User
 from moduleiq.main import app
+from moduleiq.core.dependencies import get_current_user
 from moduleiq.infrastructure.database.session import get_db
 import moduleiq.api.ai as ai_api
 
@@ -57,6 +58,7 @@ def test_provider_mutations_are_owner_scoped(tmp_path, monkeypatch):
             yield db
 
     app.dependency_overrides[get_db] = override_db
+    app.dependency_overrides[get_current_user] = lambda: user
     monkeypatch.setattr(ai_api, "_user", lambda db: db.scalar(
         __import__("sqlalchemy").select(User).where(User.email == "owner@example.com")
     ))
