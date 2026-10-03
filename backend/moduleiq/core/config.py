@@ -18,6 +18,9 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost", "http://127.0.0.1"]
     log_level: str = "INFO"
     credential_encryption_key: str = Field("", validation_alias="MODULEIQ_CREDENTIAL_ENCRYPTION_KEY")
+    auth_signing_value: str = Field("moduleiq-dev-auth", validation_alias="MODULEIQ_AUTH_SIGNING_VALUE")
+    access_token_expire_minutes: int = 60 * 24
+    algorithm: str = "HS256"
     allowed_hosts: list[str] = ["localhost", "127.0.0.1"]
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
