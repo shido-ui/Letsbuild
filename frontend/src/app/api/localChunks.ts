@@ -1,4 +1,4 @@
-import { getLocalDocument, listLocalDocuments } from "./localDb";
+import { getLocalDocument, listLocalDocuments, saveLocalChunk } from "./localDb";
 import type { LocalChunk } from "./localDocumentTypes";
 
 const CHUNK_PREFIX = "chunk:";
@@ -31,6 +31,7 @@ function makeChunks(documentId: string, pageNumber: number, text: string, startO
     start = Math.max(start + 1, end - OVERLAP_CHARS);
     ordinal += 1;
   }
+  for (const chunk of chunks) await saveLocalChunk(chunk);
   return chunks;
 }
 
