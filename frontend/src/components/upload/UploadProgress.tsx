@@ -1,0 +1,2 @@
+import { Card } from "../common/Card";
+export function UploadProgress({file,percent,status,error}:{file:string;percent:number;status:string;error?:string}){return <Card><div className="result-meta"><b>{file}</b><span>{percent}%</span></div><div className="bar big"><i style={{width:percent+"%"}}/></div><p>{error||status}</p></Card>}
