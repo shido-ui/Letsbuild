@@ -120,11 +120,12 @@ function endpoint(provider: Pick<StandaloneProvider, "provider_type" | "base_url
 
 async function request(provider: Pick<StandaloneProvider, "provider_type" | "model_name" | "base_url">, apiKey: string, prompt: string) {
   if (!prompt.trim()) throw new Error("Prompt cannot be empty.");
-  const url = endpoint(provider) + "/chat/completions";
+  const isOpenAI = provider.provider_type === "openai";
+  const url = isOpenAI ? "https://api.openai.com/v1/responses" : endpoint(provider) + "/chat/completions";
   const response = await CapacitorHttp.post({
     url,
     headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", Accept: "application/json" },
-    data: { model: provider.model_name, messages: [{ role: "user", content: prompt }] },
+    data: isOpenAI ? { model: provider.model_name, input: prompt } : { model: provider.model_name, messages: [{ role: "user", content: prompt }] },
     connectTimeout: 30_000,
     readTimeout: 60_000,
   });
@@ -132,7 +133,9 @@ async function request(provider: Pick<StandaloneProvider, "provider_type" | "mod
     const detail = response.data?.error?.message || response.data?.message || `Provider HTTP ${response.status}`;
     throw new Error(detail);
   }
-  const content = response.data?.choices?.[0]?.message?.content;
+  const content = isOpenAI
+    ? response.data?.output_text
+    : response.data?.choices?.[0]?.message?.content;
   if (typeof content !== "string" || !content.trim()) throw new Error("Provider returned no text.");
   return content;
 }
