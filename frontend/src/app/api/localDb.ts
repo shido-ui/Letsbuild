@@ -1,5 +1,5 @@
 import type { RuntimeMode } from "./client";
-import type { LocalChunk, LocalDocument } from "./localDocumentTypes";
+import type { LocalChunk, LocalDocument, LocalSection, LocalTopic } from "./localDocumentTypes";
 
 export type LocalKnowledgeBase = {
   id: string;
@@ -24,6 +24,8 @@ const STORE = "state";
 const KEY = "knowledge-base";
 const DOC_PREFIX = "document:";
 const CHUNK_PREFIX = "chunk:";
+const SECTION_PREFIX = "section:";
+const TOPIC_PREFIX = "topic:";
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -77,6 +79,41 @@ export function getLocalDocument(documentId: string): Promise<LocalDocument | nu
 
 export function saveLocalDocument(document: LocalDocument): Promise<void> {
   return write(DOC_PREFIX + document.id, document);
+}
+
+export function getLocalSection(id: string): Promise<LocalSection | null> { return read<LocalSection>(SECTION_PREFIX + id); }
+export function saveLocalSection(value: LocalSection): Promise<void> { return write(SECTION_PREFIX + value.id, value); }
+export function getLocalTopic(id: string): Promise<LocalTopic | null> { return read<LocalTopic>(TOPIC_PREFIX + id); }
+export function saveLocalTopic(value: LocalTopic): Promise<void> { return write(TOPIC_PREFIX + value.id, value); }
+
+export async function listLocalSections(): Promise<LocalSection[]> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const values: LocalSection[] = [];
+    const request = db.transaction(STORE, "readonly").objectStore(STORE).openCursor();
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (!cursor) { resolve(values); return; }
+      if (typeof cursor.key === "string" && cursor.key.startsWith(SECTION_PREFIX)) values.push(cursor.value as LocalSection);
+      cursor.continue();
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
+
+export async function listLocalTopics(): Promise<LocalTopic[]> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const values: LocalTopic[] = [];
+    const request = db.transaction(STORE, "readonly").objectStore(STORE).openCursor();
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (!cursor) { resolve(values); return; }
+      if (typeof cursor.key === "string" && cursor.key.startsWith(TOPIC_PREFIX)) values.push(cursor.value as LocalTopic);
+      cursor.continue();
+    };
+    request.onerror = () => reject(request.error);
+  });
 }
 
 export function getLocalChunk(chunkId: string): Promise<LocalChunk | null> {
@@ -148,7 +185,7 @@ export async function clearLocalKnowledgeBase(): Promise<void> {
     cursorRequest.onsuccess = () => {
       const cursor = cursorRequest.result;
       if (!cursor) return;
-      if (typeof cursor.key === "string" && (cursor.key.startsWith(DOC_PREFIX) || cursor.key.startsWith(CHUNK_PREFIX))) cursor.delete();
+      if (typeof cursor.key === "string" && (cursor.key.startsWith(DOC_PREFIX) || cursor.key.startsWith(CHUNK_PREFIX) || cursor.key.startsWith(SECTION_PREFIX) || cursor.key.startsWith(TOPIC_PREFIX))) cursor.delete();
       cursor.continue();
     };
     cursorRequest.onerror = () => reject(cursorRequest.error);
