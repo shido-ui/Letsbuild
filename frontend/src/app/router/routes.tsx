@@ -47,7 +47,7 @@ export function AppRoutes(): ReactElement {
   <Route path="/analytics" element={<Protected><AnalyticsPage/></Protected>}/>
   <Route path="/search" element={<Protected><SearchPage/></Protected>}/>
   <Route path="/first-run" element={<Protected><FirstRunPage/></Protected>}/>
-  <Route path="/settings" element={<Protected><SettingsPage/></Protected>}/>
+  <Route path="/settings" element={<SettingsPage/>}/>
   <Route path="*" element={<Navigate to="/dashboard" replace/>}/>
  </Routes>;
 }
