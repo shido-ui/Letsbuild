@@ -1,0 +1,2 @@
+import { useEffect,useState } from "react";
+export function Timer({startedAt,paused=false}:{startedAt?:string|null;paused?:boolean}){const [seconds,setSeconds]=useState(0);useEffect(()=>{if(paused||!startedAt)return;const tick=()=>setSeconds(Math.max(0,Math.floor((Date.now()-new Date(startedAt).getTime())/1000)));tick();const id=window.setInterval(tick,1000);return()=>window.clearInterval(id)},[startedAt,paused]);return <span className="timer">{String(Math.floor(seconds/60)).padStart(2,"0")}:{String(seconds%60).padStart(2,"0")}</span>}
