@@ -1,4 +1,5 @@
 import axios from "axios";
+import { useAppStore } from "../store/useAppStore";
 
 export function defaultApiBase() {
   const native = Boolean((window as any).Capacitor?.isNativePlatform?.());
@@ -22,7 +23,19 @@ export const apiClient = axios.create({
   headers: { Accept: "application/json" },
 });
 
-export function setApiToken(token: string | null) {
-  if (token) apiClient.defaults.headers.common.Authorization = `Bearer ${token}`;
-  else delete apiClient.defaults.headers.common.Authorization;
-}
+apiClient.interceptors.request.use((config) => {
+  const token = useAppStore.getState().token;
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401 && !window.location.pathname.startsWith("/login")) {
+      useAppStore.getState().logout();
+      window.location.assign("/login");
+    }
+    return Promise.reject(error);
+  },
+);
