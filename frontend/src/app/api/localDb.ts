@@ -13,6 +13,7 @@ export type LocalKnowledgeBase = {
     size_bytes: number;
     sha256?: string;
     documents: Array<{ id: string; title: string; status: string }>;
+    blob?: Blob;
   }>;
   counts: Record<string, number>;
 };
@@ -67,6 +68,32 @@ export async function ensureLocalKnowledgeBase(): Promise<LocalKnowledgeBase> {
 }
 
 export async function saveLocalKnowledgeBase(value: LocalKnowledgeBase) { return write(KEY, value); }
+
+export async function addLocalMaterial(file: File, knowledgeBaseId: string): Promise<LocalKnowledgeBase> {
+  const current = await ensureLocalKnowledgeBase();
+  if (current.id !== knowledgeBaseId) throw new Error("Knowledge base changed. Reload and try again.");
+  const duplicate = current.materials.find((m) => m.name === file.name && m.size_bytes === file.size);
+  if (duplicate) return current;
+  const materialId = crypto.randomUUID();
+  const documentId = crypto.randomUUID();
+  const next: LocalKnowledgeBase = {
+    ...current,
+    materials: [...current.materials, {
+      id: materialId,
+      name: file.name,
+      media_type: file.type || "application/octet-stream",
+      size_bytes: file.size,
+      documents: [{ id: documentId, title: file.name, status: "stored-local" }],
+      blob: file,
+    }],
+    counts: {
+      ...current.counts,
+      documents: current.counts.documents + 1,
+    },
+  };
+  await saveLocalKnowledgeBase(next);
+  return next;
+}
 
 export async function clearLocalKnowledgeBase(): Promise<void> {
   const db = await openDb();
