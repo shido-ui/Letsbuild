@@ -11,7 +11,7 @@ export async function retrieveLocalChunks(query: string, limit = 8): Promise<Loc
   const queryTerms = terms(query);
   if (!queryTerms.length) return [];
   const chunks = await listLocalChunks();
-  return chunks.map((chunk) => {
+  return chunks.map((chunk): LocalRetrieval => {
     const haystack = chunk.text.toLocaleLowerCase();
     const score = queryTerms.reduce((total, term) => {
       let count = 0;
@@ -22,5 +22,6 @@ export async function retrieveLocalChunks(query: string, limit = 8): Promise<Loc
       }
       return total + count;
     }, 0);
+    return { ...chunk, score };
   }).filter((item) => item.score > 0).sort((a, b) => b.score - a.score).slice(0, limit);
 }
