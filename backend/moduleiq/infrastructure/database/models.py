@@ -318,3 +318,20 @@ class ProcessingStage(IdMixin, TimestampMixin, Base):
 
 Index("ix_materials_sha256_media_type", Material.sha256, Material.media_type)
 Index("ix_processing_stages_job_ordinal", ProcessingStage.processing_job_id, ProcessingStage.ordinal)
+
+
+class VectorEmbedding(IdMixin, TimestampMixin, Base):
+    __tablename__ = "vector_embeddings"
+    knowledge_base_id: Mapped[str] = mapped_column(
+        ForeignKey("knowledge_bases.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    object_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    object_kind: Mapped[str] = mapped_column(String(40), nullable=False)
+    model_name: Mapped[str] = mapped_column(String(200), nullable=False)
+    dimension: Mapped[int] = mapped_column(Integer, nullable=False)
+    embedding: Mapped[bytes] = mapped_column(__import__("sqlalchemy").LargeBinary, nullable=False)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    __table_args__ = (
+        UniqueConstraint("object_kind", "object_id"),
+        Index("ix_vector_embeddings_content_hash", "knowledge_base_id", "content_hash"),
+    )
