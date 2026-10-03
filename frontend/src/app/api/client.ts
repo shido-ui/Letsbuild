@@ -1,5 +1,17 @@
 import axios from "axios";
 
+export type RuntimeMode = "standalone" | "server";
+
+export function getRuntimeMode(): RuntimeMode {
+  const stored = localStorage.getItem("moduleiq_runtime_mode");
+  if (stored === "server" || stored === "standalone") return stored;
+  return Boolean((window as any).Capacitor?.isNativePlatform?.()) ? "standalone" : "server";
+}
+
+export function setRuntimeMode(mode: RuntimeMode) {
+  localStorage.setItem("moduleiq_runtime_mode", mode);
+}
+
 export function defaultApiBase() {
   const native = Boolean((window as any).Capacitor?.isNativePlatform?.());
   return import.meta.env.VITE_API_BASE_URL || (native ? "http://127.0.0.1:8000/api" : "/api");
