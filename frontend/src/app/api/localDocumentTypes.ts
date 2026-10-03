@@ -30,3 +30,23 @@ export type LocalChunk = {
   characterCount: number;
   tokenEstimate: number;
 };
+
+export type LocalSection = {
+  id: string;
+  documentId: string;
+  title: string;
+  level: number;
+  startPage: number;
+  endPage: number;
+  chunkIds: string[];
+  summary?: string;
+};
+
+export type LocalTopic = {
+  id: string;
+  documentId: string;
+  sectionId: string;
+  name: string;
+  keywords: string[];
+  chunkIds: string[];
+};
