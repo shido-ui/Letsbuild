@@ -1,0 +1,37 @@
+services:
+  api:
+    build: .
+    restart: unless-stopped
+    environment:
+      MODULEIQ_ENVIRONMENT: production
+      MODULEIQ_DATABASE_URL: sqlite:////app/data/moduleiq.db
+      MODULEIQ_DATA_DIR: /app/data
+      MODULEIQ_STORAGE_ROOT: /app/data/storage
+      MODULEIQ_CREDENTIAL_ENCRYPTION_KEY: ${MODULEIQ_CREDENTIAL_ENCRYPTION_KEY:?set in .env}
+      MODULEIQ_AUTH_SIGNING_VALUE: ${MODULEIQ_AUTH_SIGNING_VALUE:?set in .env}
+      MODULEIQ_CORS_ORIGINS: '["http://localhost"]'
+      MODULEIQ_ALLOWED_HOSTS: '["localhost","127.0.0.1"]'
+    volumes:
+      - moduleiq-data:/app/data
+    ports:
+      - "8000:8000"
+    command: uvicorn moduleiq.main:app --host 0.0.0.0 --port 8000
+
+  worker:
+    build: .
+    restart: unless-stopped
+    environment:
+      MODULEIQ_ENVIRONMENT: production
+      MODULEIQ_DATABASE_URL: sqlite:////app/data/moduleiq.db
+      MODULEIQ_DATA_DIR: /app/data
+      MODULEIQ_STORAGE_ROOT: /app/data/storage
+      MODULEIQ_CREDENTIAL_ENCRYPTION_KEY: ${MODULEIQ_CREDENTIAL_ENCRYPTION_KEY:?set in .env}
+      MODULEIQ_AUTH_SIGNING_VALUE: ${MODULEIQ_AUTH_SIGNING_VALUE:?set in .env}
+      MODULEIQ_CORS_ORIGINS: '["http://localhost"]'
+      MODULEIQ_ALLOWED_HOSTS: '["localhost","127.0.0.1"]'
+    volumes:
+      - moduleiq-data:/app/data
+    command: huey_consumer moduleiq.workers.ingestion.huey --workers 1 --worker-type thread
+
+volumes:
+  moduleiq-data:
