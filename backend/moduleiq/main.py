@@ -1,10 +1,12 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from uuid import uuid4
 
 from moduleiq.api.health import router as health_router
+from moduleiq.api.auth import router as auth_router
+from moduleiq.core.dependencies import get_current_user
 from moduleiq.api.ingestion import router as ingestion_router
 from moduleiq.api.ai import router as ai_router
 from moduleiq.api.knowledge import router as knowledge_router
@@ -33,19 +35,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 app.include_router(health_router, prefix="/api")
-app.include_router(ingestion_router, prefix="/api")
-app.include_router(ai_router, prefix="/api")
-app.include_router(knowledge_router, prefix="/api")
-app.include_router(questions_router, prefix="/api")
-app.include_router(verification_router, prefix="/api")
-app.include_router(solutions_router, prefix="/api")
-app.include_router(knowledge_workspace_router, prefix="/api")
-app.include_router(search_router, prefix="/api")
-app.include_router(practice_router, prefix="/api")
-app.include_router(adaptive_router, prefix="/api")
-app.include_router(review_router, prefix="/api")
-app.include_router(analytics_router, prefix="/api")
-app.include_router(portability_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
+app.include_router(ingestion_router, prefix="/api", dependencies=[Depends(get_current_user)])
+app.include_router(ai_router, prefix="/api", dependencies=[Depends(get_current_user)])
+app.include_router(knowledge_router, prefix="/api", dependencies=[Depends(get_current_user)])
+app.include_router(questions_router, prefix="/api", dependencies=[Depends(get_current_user)])
+app.include_router(verification_router, prefix="/api", dependencies=[Depends(get_current_user)])
+app.include_router(solutions_router, prefix="/api", dependencies=[Depends(get_current_user)])
+app.include_router(knowledge_workspace_router, prefix="/api", dependencies=[Depends(get_current_user)])
+app.include_router(search_router, prefix="/api", dependencies=[Depends(get_current_user)])
+app.include_router(practice_router, prefix="/api", dependencies=[Depends(get_current_user)])
+app.include_router(adaptive_router, prefix="/api", dependencies=[Depends(get_current_user)])
+app.include_router(review_router, prefix="/api", dependencies=[Depends(get_current_user)])
+app.include_router(analytics_router, prefix="/api", dependencies=[Depends(get_current_user)])
+app.include_router(portability_router, prefix="/api", dependencies=[Depends(get_current_user)])
 
 @app.get("/api")
 async def api_root() -> dict[str, str]:
