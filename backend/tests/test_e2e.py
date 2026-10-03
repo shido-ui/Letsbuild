@@ -40,7 +40,7 @@ def test_api_learning_journey(tmp_path):
         client=TestClient(app)
         login=client.post("/api/auth/login", data={"username":"local","password":"password123"})
         assert login.status_code==200
-        headers={"Authorization":f"Bearer {login.json()["access_token"]}"}
+        headers={"Authorization":f"Bearer {login.json()['access_token']}"}
         listed=client.get("/api/ingestion/knowledge-bases",headers=headers)
         assert listed.status_code==200 and listed.json()[0]["id"]==kb_id
 
