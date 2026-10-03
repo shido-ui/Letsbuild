@@ -1,0 +1,2 @@
+import { LineChart,Line,CartesianGrid,ResponsiveContainer,Tooltip,XAxis,YAxis } from "recharts";
+export function TrendChart({data}:{data:any[]}){return <div style={{width:"100%",height:260}}><ResponsiveContainer><LineChart data={data}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="date"/><YAxis domain={[0,100]}/><Tooltip/><Line type="monotone" dataKey="accuracy" strokeWidth={2}/></LineChart></ResponsiveContainer></div>}
