@@ -24,7 +24,7 @@ def get_current_user(
     )
     settings = get_settings()
     try:
-        payload = jwt.decode(token, settings.secret_key, algorithms=[settings.algorithm])
+        payload = jwt.decode(token, settings.auth_signing_value, algorithms=[settings.algorithm])
         subject = payload.get("sub")
         if not subject or not isinstance(subject, str):
             raise credentials_exception
