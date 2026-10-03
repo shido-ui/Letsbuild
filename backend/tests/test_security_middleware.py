@@ -19,12 +19,13 @@ def make_app():
 
 def test_security_headers_and_rate_limit():
     client=TestClient(make_app())
-    first=client.get("/ok")
+    headers={"X-Forwarded-For":"10.0.0.1"}
+    first=client.get("/ok",headers=headers)
     assert first.status_code==200
     assert first.headers["X-Content-Type-Options"]=="nosniff"
     assert first.headers["X-Frame-Options"]=="DENY"
-    assert client.get("/ok").status_code==200
-    third=client.get("/ok")
+    assert client.get("/ok",headers=headers).status_code==200
+    third=client.get("/ok",headers=headers)
     assert third.status_code==429
     assert "Retry-After" in third.headers
 
