@@ -1,0 +1,3 @@
+import {apiClient} from "../api/client";
+export async function getAnalytics(kbId:string,days:number){const {data}=await apiClient.get("/analytics/summary",{params:{knowledge_base_id:kbId,days}});return data;}
+export async function logAnalyticsEvent(payload:{event_type:string;knowledge_base_id?:string;metadata?:Record<string,unknown>}){const {data}=await apiClient.post("/analytics/events",payload);return data;}
