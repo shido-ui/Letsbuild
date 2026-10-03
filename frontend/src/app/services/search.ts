@@ -1,0 +1,2 @@
+import {apiClient} from "../api/client";
+export async function searchKnowledge(kbId:string,q:string,filters:{kind?:string;document_id?:string;limit?:number}={}){const {data}=await apiClient.get("/search",{params:{knowledge_base_id:kbId,q,...filters}});return data;}
