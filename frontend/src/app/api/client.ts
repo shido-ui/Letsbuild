@@ -32,7 +32,8 @@ apiClient.interceptors.response.use(
   (error) => {
     if (error.response?.status === 401 && window.location.pathname !== "/login") {
       setApiToken(null);
-      window.dispatchEvent(new CustomEvent("moduleiq:auth-expired"));
+      localStorage.removeItem("moduleiq-app-state");
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   },
