@@ -5,7 +5,6 @@ import { AppChrome } from "../app/layout/AppChrome";
 import { apiClient, getRuntimeMode } from "../app/api/client";
 import { addLocalMaterial } from "../app/api/localDb";
 import { processLocalDocument } from "../app/api/localDocumentEngine";
-import { buildLocalChunks } from "../app/api/localChunks";
 import { buildLocalStructure } from "../app/api/localStructure";
 import { buildLocalChunks } from "../app/api/localChunks";
 import { generateLocalQuestions } from "../app/api/localQuestions";
