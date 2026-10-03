@@ -1,5 +1,6 @@
-from moduleiq.main import app
 from fastapi.testclient import TestClient
+
+from moduleiq.main import app
 
 
 def test_security_headers():
