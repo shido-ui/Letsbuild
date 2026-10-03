@@ -1,14 +1,14 @@
 from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.orm import Session
-from moduleiq.infrastructure.database.models import Concept,Question,Topic,Material,Document,DocumentVersion,Page,Block
+from moduleiq.infrastructure.database.models import Chapter,Concept,Document,DocumentVersion,Material,Question,Section,Topic
 from moduleiq.infrastructure.database.vector_store import VectorStore,pack
 from moduleiq.services.ai.embeddings import EmbeddingService
 
 def _records(db:Session,kb_id:str):
     questions=db.scalars(select(Question).where(Question.knowledge_base_id==kb_id)).all()
-    topics=db.scalars(select(Topic).join(Topic.chapter).join(__import__("moduleiq.infrastructure.database.models",fromlist=["Section"]).Section).join( __import__("moduleiq.infrastructure.database.models",fromlist=["DocumentVersion"]).DocumentVersion).join(__import__("moduleiq.infrastructure.database.models",fromlist=["Document"]).Document).join(Material).where(Material.knowledge_base_id==kb_id)).all()
-    concepts=db.scalars(select(Concept).join(Concept.subtopic).join(Topic).join(__import__("moduleiq.infrastructure.database.models",fromlist=["Chapter"]).Chapter).join(__import__("moduleiq.infrastructure.database.models",fromlist=["Section"]).Section).join(__import__("moduleiq.infrastructure.database.models",fromlist=["DocumentVersion"]).DocumentVersion).join(__import__("moduleiq.infrastructure.database.models",fromlist=["Document"]).Document).join(Material).where(Material.knowledge_base_id==kb_id)).all()
+    topics=db.scalars(select(Topic).join(Topic.chapter).join(Chapter.section).join(Section).join(DocumentVersion).join(Document).join(Material).where(Material.knowledge_base_id==kb_id)).all()
+    concepts=db.scalars(select(Concept).join(Concept.subtopic).join(Topic).join(Chapter).join(Section).join(DocumentVersion).join(Document).join(Material).where(Material.knowledge_base_id==kb_id)).all()
     return [(q,"question",q.text) for q in questions]+[(t,"topic",t.name) for t in topics]+[(c,"concept",c.name+" "+(c.definition or "")) for c in concepts]
 
 def index_knowledge_base(db:Session,kb_id:str,service:EmbeddingService,store:VectorStore)->dict:
