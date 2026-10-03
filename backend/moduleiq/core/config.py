@@ -18,7 +18,7 @@ class Settings(BaseSettings):
     cors_origins: list[str] = ["http://localhost:5173", "http://127.0.0.1:5173", "http://localhost", "http://127.0.0.1"]
     log_level: str = "INFO"
     credential_encryption_key: str = Field("", validation_alias="MODULEIQ_CREDENTIAL_ENCRYPTION_KEY")
-    secret_key: str = Field("", validation_alias="MODULEIQ_SECRET_KEY")
+    secret_key: str = Field("moduleiq-development-secret-change-me", validation_alias="MODULEIQ_SECRET_KEY")
     access_token_expire_minutes: int = Field(60, validation_alias="MODULEIQ_ACCESS_TOKEN_EXPIRE_MINUTES")
     jwt_algorithm: str = "HS256"
     allowed_hosts: list[str] = ["localhost", "127.0.0.1"]
