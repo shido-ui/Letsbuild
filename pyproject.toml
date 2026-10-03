@@ -24,6 +24,11 @@ dependencies = [
 document-engine = [
   "mineru==4.0.10",
 ]
+local-ai = [
+  "torch>=2.1,<3",
+  "sentence-transformers>=3,<6",
+  "chromadb>=0.5,<2",
+]
 dev = [
   "pytest>=8.4,<9",
   "pytest-asyncio>=1.2,<2",
