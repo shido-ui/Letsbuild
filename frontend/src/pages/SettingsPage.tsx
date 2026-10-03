@@ -85,6 +85,7 @@ export function SettingsPage() {
     form.setValue("model_name", first);
     if (providerType === "openai") form.setValue("base_url", "https://api.openai.com/v1");
     else if (providerType === "gemini") form.setValue("base_url", "");
+    if (providerType === "local") form.setValue("api_key", "local");
   }, [providerType]);
 
   function changeMode(next: RuntimeMode) {
