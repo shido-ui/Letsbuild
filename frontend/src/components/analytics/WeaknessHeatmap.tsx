@@ -1,0 +1,2 @@
+import { Card } from "../common/Card";
+export function WeaknessHeatmap({items}:{items:any[]}){return <div className="grid3">{items.map(x=><Card key={x.topic_id||x.topic}><div className="result-meta"><b>{x.topic}</b><span>{Math.round(x.mastery||0)}%</span></div><div className="bar"><i style={{width:Math.min(100,Math.max(0,x.mastery||0))+"%"}}/></div></Card>)}</div>}
