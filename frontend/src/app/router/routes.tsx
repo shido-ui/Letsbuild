@@ -1,8 +1,8 @@
 import type { ReactElement } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { LegacySurface } from "../../pages/LegacySurface";
-import { LoginPage } from "../../pages/LoginPage";
-import { RegisterPage } from "../../pages/RegisterPage";
+import LoginPage from "../../pages/LoginPage";
+import RegisterPage from "../../pages/RegisterPage";
 import { SettingsPage } from "../../pages/SettingsPage";
 import { RequireAuth } from "./RequireAuth";
 
