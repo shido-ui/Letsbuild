@@ -1,0 +1,2 @@
+import { Card } from "../common/Card";
+export function ResultsSummary({data}:{data:any}){return <div className="four"><Card><b>{data?.score??0}%</b><small>Score</small></Card><Card><b>{data?.correct??0}</b><small>Correct</small></Card><Card><b>{data?.skipped??0}</b><small>Skipped</small></Card><Card><b>{data?.total_questions??0}</b><small>Total</small></Card></div>}
