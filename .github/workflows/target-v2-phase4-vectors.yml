@@ -1,0 +1,21 @@
+name: ModuleIQ V2 Phase 4 Search Vectors
+on:
+  push:
+    branches: [target/v2-phase-4-search-vectors]
+  workflow_dispatch:
+jobs:
+  vectors:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Search and vector gate
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          mkdir -p data
+          python -m compileall -q backend
+          alembic upgrade head
+          pytest -q
