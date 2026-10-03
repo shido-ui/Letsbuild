@@ -7,7 +7,7 @@ from pypdf import PdfReader
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from moduleiq.core.config import get_settings
-from moduleiq.core.security import require_local_kb, require_local_job
+from moduleiq.core.security import local_user, require_local_kb, require_local_job
 from moduleiq.infrastructure.database.models import Document, DocumentVersion, KnowledgeBase, Material, ProcessingJob, ProcessingStage, User, Workspace
 settings=get_settings()
 STAGES=("validation","document_analysis","extraction","normalization","finalization")
@@ -19,9 +19,10 @@ def _safe_name(name: str|None)->str:
     return (value if value not in {"",".",".."} else "material.pdf")[:500]
 
 def _ensure_local_workspace(db: Session)->KnowledgeBase:
-    user=db.scalar(select(User).where(User.email=="local@moduleiq"))
+    user=local_user(db)
     if user is None:
-        user=User(id=str(uuid.uuid4()),email="local@moduleiq",display_name="Local user"); db.add(user); db.flush()
+        user=User(id=str(uuid.uuid4()),email="local@moduleiq",display_name="Local user",is_active=True)
+        db.add(user); db.flush()
     workspace=db.scalar(select(Workspace).where(Workspace.owner_id==user.id).order_by(Workspace.created_at))
     if workspace is None:
         workspace=Workspace(id=str(uuid.uuid4()),owner_id=user.id,name="Personal workspace"); db.add(workspace); db.flush()
