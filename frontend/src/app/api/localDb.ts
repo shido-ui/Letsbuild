@@ -1,5 +1,5 @@
 import type { RuntimeMode } from "./client";
-import type { LocalDocument } from "./localDocumentTypes";
+import type { LocalChunk, LocalDocument } from "./localDocumentTypes";
 
 export type LocalKnowledgeBase = {
   id: string;
@@ -23,6 +23,7 @@ const DB_NAME = "moduleiq-local";
 const STORE = "state";
 const KEY = "knowledge-base";
 const DOC_PREFIX = "document:";
+const CHUNK_PREFIX = "chunk:";
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -78,6 +79,29 @@ export function saveLocalDocument(document: LocalDocument): Promise<void> {
   return write(DOC_PREFIX + document.id, document);
 }
 
+export function getLocalChunk(chunkId: string): Promise<LocalChunk | null> {
+  return read<LocalChunk>(CHUNK_PREFIX + chunkId);
+}
+
+export function saveLocalChunk(chunk: LocalChunk): Promise<void> {
+  return write(CHUNK_PREFIX + chunk.id, chunk);
+}
+
+export async function listLocalChunks(): Promise<LocalChunk[]> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const chunks: LocalChunk[] = [];
+    const request = db.transaction(STORE, "readonly").objectStore(STORE).openCursor();
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (!cursor) { resolve(chunks); return; }
+      if (typeof cursor.key === "string" && cursor.key.startsWith(CHUNK_PREFIX)) chunks.push(cursor.value as LocalChunk);
+      cursor.continue();
+    };
+    request.onerror = () => reject(request.error);
+  });
+}
+
 export async function addLocalMaterial(file: File, knowledgeBaseId: string): Promise<LocalKnowledgeBase> {
   const current = await ensureLocalKnowledgeBase();
   if (current.id !== knowledgeBaseId) throw new Error("Knowledge base changed. Reload and try again.");
@@ -124,7 +148,7 @@ export async function clearLocalKnowledgeBase(): Promise<void> {
     cursorRequest.onsuccess = () => {
       const cursor = cursorRequest.result;
       if (!cursor) return;
-      if (typeof cursor.key === "string" && cursor.key.startsWith(DOC_PREFIX)) cursor.delete();
+      if (typeof cursor.key === "string" && (cursor.key.startsWith(DOC_PREFIX) || cursor.key.startsWith(CHUNK_PREFIX))) cursor.delete();
       cursor.continue();
     };
     cursorRequest.onerror = () => reject(cursorRequest.error);
