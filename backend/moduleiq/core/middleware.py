@@ -63,12 +63,12 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
 
     async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[Response]]) -> Response:
         now = time.monotonic()
+        self._trim(now)
         key = self._client_key(request)
         hits = self._hits[key]
         cutoff = now - self.burst_window_seconds
         while hits and hits[0] < cutoff:
             hits.popleft()
-        self._trim(now)
         if len(hits) >= self.requests_per_minute:
             retry_after = max(1, int(hits[0] + self.burst_window_seconds - now))
             return Response(
