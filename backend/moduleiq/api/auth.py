@@ -56,7 +56,7 @@ def create_access_token(user_id: str) -> tuple[str, int]:
     expires = max(5, settings.access_token_expire_minutes)
     expire_at = datetime.now(timezone.utc) + timedelta(minutes=expires)
     payload = {"sub": user_id, "exp": expire_at}
-    return jwt.encode(payload, settings.secret_key, algorithm=settings.algorithm), expires * 60
+    return jwt.encode(payload, settings.auth_signing_value, algorithm=settings.algorithm), expires * 60
 
 
 @router.post("/register", response_model=UserResponse, status_code=201)
