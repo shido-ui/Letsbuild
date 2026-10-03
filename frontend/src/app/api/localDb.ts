@@ -118,7 +118,16 @@ export async function clearLocalKnowledgeBase(): Promise<void> {
   const db = await openDb();
   await new Promise<void>((resolve, reject) => {
     const tx = db.transaction(STORE, "readwrite");
-    tx.objectStore(STORE).delete(KEY);
+    const store = tx.objectStore(STORE);
+    store.delete(KEY);
+    const cursorRequest = store.openCursor();
+    cursorRequest.onsuccess = () => {
+      const cursor = cursorRequest.result;
+      if (!cursor) return;
+      if (typeof cursor.key === "string" && cursor.key.startsWith(DOC_PREFIX)) cursor.delete();
+      cursor.continue();
+    };
+    cursorRequest.onerror = () => reject(cursorRequest.error);
     tx.oncomplete = () => resolve();
     tx.onerror = () => reject(tx.error);
   });
