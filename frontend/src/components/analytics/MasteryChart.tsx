@@ -1,0 +1,2 @@
+import { BarChart,Bar,CartesianGrid,ResponsiveContainer,Tooltip,XAxis,YAxis } from "recharts";
+export function MasteryChart({data}:{data:any[]}){return <div style={{width:"100%",height:260}}><ResponsiveContainer><BarChart data={data}><CartesianGrid strokeDasharray="3 3"/><XAxis dataKey="topic"/><YAxis domain={[0,100]}/><Tooltip/><Bar dataKey="mastery" name="Mastery"/></BarChart></ResponsiveContainer></div>}
