@@ -26,6 +26,7 @@ const DOC_PREFIX = "document:";
 const CHUNK_PREFIX = "chunk:";
 const SECTION_PREFIX = "section:";
 const TOPIC_PREFIX = "topic:";
+const QUESTION_PREFIX = "question:";
 
 function openDb(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -79,6 +80,37 @@ export function getLocalDocument(documentId: string): Promise<LocalDocument | nu
 
 export function saveLocalDocument(document: LocalDocument): Promise<void> {
   return write(DOC_PREFIX + document.id, document);
+}
+
+export type LocalQuestion = {
+  id: string;
+  documentId: string;
+  chunkId: string;
+  prompt: string;
+  answer: string;
+  type: "short_answer" | "mcq" | "true_false";
+  options?: string[];
+  difficulty: "easy" | "medium" | "hard";
+  sourcePage: number;
+  sourceTitle: string;
+  createdAt: string;
+};
+
+export function getLocalQuestion(id: string): Promise<LocalQuestion | null> { return read<LocalQuestion>(QUESTION_PREFIX + id); }
+export function saveLocalQuestion(value: LocalQuestion): Promise<void> { return write(QUESTION_PREFIX + value.id, value); }
+export async function listLocalQuestions(): Promise<LocalQuestion[]> {
+  const db = await openDb();
+  return new Promise((resolve, reject) => {
+    const values: LocalQuestion[] = [];
+    const request = db.transaction(STORE, "readonly").objectStore(STORE).openCursor();
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (!cursor) { resolve(values); return; }
+      if (typeof cursor.key === "string" && cursor.key.startsWith(QUESTION_PREFIX)) values.push(cursor.value as LocalQuestion);
+      cursor.continue();
+    };
+    request.onerror = () => reject(request.error);
+  });
 }
 
 export function getLocalSection(id: string): Promise<LocalSection | null> { return read<LocalSection>(SECTION_PREFIX + id); }
@@ -185,7 +217,7 @@ export async function clearLocalKnowledgeBase(): Promise<void> {
     cursorRequest.onsuccess = () => {
       const cursor = cursorRequest.result;
       if (!cursor) return;
-      if (typeof cursor.key === "string" && (cursor.key.startsWith(DOC_PREFIX) || cursor.key.startsWith(CHUNK_PREFIX) || cursor.key.startsWith(SECTION_PREFIX) || cursor.key.startsWith(TOPIC_PREFIX))) cursor.delete();
+      if (typeof cursor.key === "string" && (cursor.key.startsWith(DOC_PREFIX) || cursor.key.startsWith(CHUNK_PREFIX) || cursor.key.startsWith(SECTION_PREFIX) || cursor.key.startsWith(TOPIC_PREFIX) || cursor.key.startsWith(QUESTION_PREFIX))) cursor.delete();
       cursor.continue();
     };
     cursorRequest.onerror = () => reject(cursorRequest.error);
