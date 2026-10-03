@@ -1,7 +1,6 @@
 import { getLocalDocument, listLocalDocuments, saveLocalChunk } from "./localDb";
 import type { LocalChunk } from "./localDocumentTypes";
 
-const CHUNK_PREFIX = "chunk:";
 const TARGET_CHARS = 2400;
 const OVERLAP_CHARS = 280;
 
@@ -9,7 +8,7 @@ function estimateTokens(text: string): number {
   return Math.max(1, Math.ceil(text.length / 4));
 }
 
-async function makeChunks(documentId: string, pageNumber: number, text: string, startOrdinal: number): LocalChunk[] {
+async function makeChunks(documentId: string, pageNumber: number, text: string, startOrdinal: number): Promise<LocalChunk[]> {
   const normalized = text.replace(/\s+/g, " ").trim();
   if (!normalized) return [];
   const chunks: LocalChunk[] = [];
